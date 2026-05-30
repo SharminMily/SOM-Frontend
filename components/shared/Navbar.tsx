@@ -21,10 +21,10 @@ export function Navbar() {
             <span className="text-white font-bold text-2xl">S</span>
           </div>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-[#10B981]">
+            <h1 className="text-2xl font-semibold tracking-tight ">
               SOM
             </h1>
-            <p className="text-xs text-muted-foreground -mt-1">Super Office</p>
+            <p className="text-xs text-muted-foreground -mt-1">Smart Office Management</p>
           </div>
         </div>
 
@@ -44,15 +44,33 @@ export function Navbar() {
         <div className="flex items-center gap-4 ml-auto">
           <NotificationBell />
           <ThemeToggle />
+           
 
-          <Button
+          {/* <Button
             variant="ghost"
             size="icon"
             className="lg:hidden"
             onClick={() => setIsMobileOpen(!isMobileOpen)}
           >
             <Menu className="h-5 w-5" />
-          </Button>
+          </Button> */}
+          {/* <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden md:hidden"
+            onClick={() => setIsMobileOpen(!isMobileOpen)}
+          >
+            <Search className="h-5 w-5" />
+          </Button> */}
+
+           <Button
+              variant="ghost"
+              size="icon"
+              className=" lg:inline-flex border border-primary text-primary bg-primary hover:bg-white text-white  hover:text-primary px-6 py-2 rounded font-semibold"
+            >         login
+              
+            </Button>
+
         </div>
       </div>
     </nav>

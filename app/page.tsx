@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
+import { Navbar } from "components/shared/Navbar";
 import { Card, CardContent } from "components/ui/card";
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-background text-foreground">
-
+ <Navbar />
       {/* Background */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_40%)]" />
