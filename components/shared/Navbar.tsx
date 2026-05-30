@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 
 import { ThemeToggle } from "./ThemeToggle";
 import { NotificationBell } from "./NotificationBell";
+import Link from "next/link";
 
 
 export function Navbar() {
@@ -63,13 +64,15 @@ export function Navbar() {
             <Search className="h-5 w-5" />
           </Button> */}
 
-           <Button
-              variant="ghost"
-              size="icon"
-              className=" lg:inline-flex border border-primary text-primary bg-primary hover:bg-white text-white  hover:text-primary px-6 py-2 rounded font-semibold"
-            >         login
-              
-            </Button>
+         <Link href="/Auth/login">
+  <Button
+    variant="ghost"
+    size="icon"
+    className="lg:inline-flex border border-primary text-primary bg-primary hover:bg-white text-white hover:text-primary px-6 py-2 rounded font-semibold"
+  >
+    Login
+  </Button>
+</Link>
 
         </div>
       </div>
