@@ -5,8 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Eye, EyeOff, Loader2, ArrowRight, Mail, Lock, User, CheckCircle } from "lucide-react";
-import { authApi } from "lib/api/auth.api";
-import { cn } from "lib/utils";
+import { authApi } from "@/lib/api/auth.api";
+import { cn } from "@/lib/utils";
 
 const schema = z.object({
   firstName: z.string().min(1, "Required"),

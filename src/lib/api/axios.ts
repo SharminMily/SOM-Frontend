@@ -4,11 +4,11 @@ import axios, {
   type AxiosResponse,
   type AxiosError,
 } from "axios";
-import { useAuthStore } from "lib/store/auth.store";
+import { useAuthStore } from "@/lib/store/auth.store";
 
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
-
+console.log(process.env.NEXT_PUBLIC_API_URL);
 // ─── Axios instance ───────────────────────────────────────────────────────────
 
 export const api: AxiosInstance = axios.create({

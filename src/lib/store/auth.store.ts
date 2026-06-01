@@ -3,7 +3,7 @@ import { persist, devtools } from "zustand/middleware";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type UserRole   = "ADMIN" | "HR" | "MANAGER" | "EMPLOYEE";
+export type UserRole   = "ADMIN" | "MANAGER" | "EMPLOYEE";
 export type UserStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED";
 
 export interface AuthUser {
@@ -44,8 +44,7 @@ interface AuthState {
 // ─── Role helpers ─────────────────────────────────────────────────────────────
 
 const ROLE_DASHBOARD: Record<UserRole, string> = {
-  ADMIN:    "/dashboard/admin",
-  HR:       "/dashboard/hr",
+  ADMIN:    "/dashboard/admin", 
   MANAGER:  "/dashboard/manager",
   EMPLOYEE: "/dashboard/employee",
 };

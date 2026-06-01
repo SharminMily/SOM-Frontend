@@ -81,6 +81,7 @@ export const authApi = {
   login: (payload: LoginPayload) =>
     api.post<ApiResponse<LoginResponse>>("/auth/login", payload),
 
+
   /**
    * POST /auth/signup
    * Registers a new user. Triggers verification email.
