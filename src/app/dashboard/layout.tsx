@@ -1,17 +1,25 @@
-// app/Dashboard/layout.tsx
+import DashboardLayout from "@/components/layout/dashboard-layout";
+import { getCurrentUser } from "@/lib/auth";
 
-import DashboardLayout from '@/components/layout/dashboard-layout';
+export default async function DashboardRootLayout({ children }: any) {
+  const user = await getCurrentUser();
+  
+  console.log("✅ Server Current User:", user); // Keep this for now
 
-export default function DashboardRootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+  if (!user) {
+    // Optional: Redirect to login if no user
+    // redirect('/login');
+  }
+
   return (
-    <DashboardLayout 
-      userRole="ADMIN"           // ← এখানে UPPERCASE করো
-      userName="Ayesa Rahman"
-      avatarUrl="/avatar.jpg"
+    <DashboardLayout
+      userRole={user?.role ?? "EMPLOYEE"}
+      userName={
+        user?.name || 
+        `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || 
+        "Unknown User"
+      }
+      avatarUrl={user?.avatarUrl ?? "/default-avatar.jpg"}
     >
       {children}
     </DashboardLayout>
