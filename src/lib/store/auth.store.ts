@@ -12,7 +12,7 @@ export interface AuthUser {
   firstName: string;
   lastName: string;
   phone?: string;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
   role: UserRole;
   status: UserStatus;
   emailVerified: boolean;

@@ -1,25 +1,22 @@
-import DashboardLayout from "@/components/layout/dashboard-layout";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { getCurrentUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default async function DashboardRootLayout({ children }: any) {
+export default async function Layout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const user = await getCurrentUser();
-  
-  console.log("✅ Server Current User:", user); // Keep this for now
-
+console.log("Dashboard Layout User:", user);
   if (!user) {
-    // Optional: Redirect to login if no user
-    // redirect('/login');
+    redirect("/login");
   }
 
   return (
     <DashboardLayout
-      userRole={user?.role ?? "EMPLOYEE"}
-      userName={
-        user?.name || 
-        `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || 
-        "Unknown User"
-      }
-      avatarUrl={user?.avatarUrl ?? "/default-avatar.jpg"}
+      role={user.role}
+      userName={user.name}
     >
       {children}
     </DashboardLayout>

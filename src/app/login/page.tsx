@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { LoginForm } from "../LoginForm";
-import { AuthLeftPanel } from "../AuthLeftPanel";
+import { LoginForm } from "../Auth/LoginForm";
+import { AuthLeftPanel } from "../Auth/AuthLeftPanel";
 
 export const metadata: Metadata = { title: "Sign in — SOM" };
 

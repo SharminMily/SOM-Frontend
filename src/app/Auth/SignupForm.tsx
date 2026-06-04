@@ -20,7 +20,6 @@ type FormData = z.infer<typeof schema>;
 const ROLES = [
   { value: "EMPLOYEE", label: "Employee" },
   { value: "MANAGER",  label: "Manager"  },
-  { value: "HR",       label: "HR"       },
   { value: "ADMIN",    label: "Admin"    },
 ] as const;
 
@@ -70,7 +69,7 @@ export function SignupForm() {
         <p className="text-[13px] text-[#7fa89a] max-w-[260px] leading-relaxed">
           We sent a verification link to your email. Click it to activate your account.
         </p>
-        <a href="/auth/login" className="mt-8 text-[13px] font-medium text-[#10B981] hover:underline">
+        <a href="/login" className="mt-8 text-[13px] font-medium text-[#10B981] hover:underline">
           Back to sign in
         </a>
       </div>
@@ -190,7 +189,7 @@ export function SignupForm() {
       </form>
 
       <p className="mt-4 text-center text-[12.5px] text-[#7fa89a]">
-        Already have an account? <a href="/Auth/login" className="text-[#10B981] hover:underline">Sign in</a>
+        Already have an account? <a href="/login" className="text-[#10B981] hover:underline">Sign in</a>
       </p>
     </div>
   );

@@ -7,8 +7,8 @@ import { z } from "zod";
 import { Eye, EyeOff, Loader2, ArrowRight, Mail, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { authApi } from "@/lib/api/auth.api";
-import { useAuthStore } from "@/lib/store/auth.store";
-import { AuthUser } from "@/app/types/user";
+import { AuthUser, useAuthStore } from "@/lib/store/auth.store";
+
 
 const schema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -67,6 +67,7 @@ const onSubmit = async (data: FormData) => {
       updatedAt: decoded.updatedAt ?? new Date().toISOString(),
     } as AuthUser;   // ← Cast to the one used by setAuth
 
+    
     setAuth(user, accessToken);
 
     console.log("✅ Login successful", user);
@@ -219,7 +220,7 @@ const onSubmit = async (data: FormData) => {
 
       <p className="mt-5 text-center text-[12.5px] text-[#7fa89a]">
         Don&apos;t have an account?{" "}
-        <a href="/Auth/signup" className="text-[#10B981] hover:underline">Request access</a>
+        <a href="/signup" className="text-[#10B981] hover:underline">Request access</a>
       </p>
     </div>
   );

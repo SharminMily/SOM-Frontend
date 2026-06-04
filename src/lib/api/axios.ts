@@ -11,11 +11,15 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
 console.log(process.env.NEXT_PUBLIC_API_URL);
 // ─── Axios instance ───────────────────────────────────────────────────────────
 
+if (!BASE_URL) {
+  throw new Error("NEXT_PUBLIC_API_URL is missing");
+}
+
 export const api: AxiosInstance = axios.create({
-  baseURL: BASE_URL,
-  withCredentials: true,        // always send the httpOnly refresh cookie
+ baseURL: BASE_URL,
+  withCredentials: true,
   headers: { "Content-Type": "application/json" },
-  timeout: 15_000,
+  timeout: 15000,
 });
 
 // ─── Request interceptor ──────────────────────────────────────────────────────
@@ -57,22 +61,25 @@ function processQueue(error: unknown, token: string | null) {
 }
 
 api.interceptors.response.use(
-  (response: AxiosResponse) => response,
+  (response) => response,
 
   async (error: AxiosError) => {
     const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // Only intercept 401 errors that haven't already been retried,
-    // and skip the refresh endpoint itself to prevent infinite loops.
-    const isRefreshEndpoint = original?.url?.includes("/auth/refresh");
-    if (error.response?.status !== 401 || original?._retry || isRefreshEndpoint) {
+    if (!error.response) return Promise.reject(error);
+
+    const isAuthRequest = original?.url?.includes('/auth/');
+    const is401 = error.response?.status === 401;
+
+    // Skip refresh logic for:
+    // - All auth endpoints (login, register, refresh, etc.)
+    // - Already retried requests
+    if (!is401 || original?._retry || isAuthRequest) {
       return Promise.reject(error);
     }
 
-    // Mark this request so we don't retry it again.
     original._retry = true;
 
-    // If a refresh is already in-flight, queue this request.
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({
@@ -88,39 +95,34 @@ api.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      // Call refresh directly (not through `api`) to avoid the interceptor loop.
       const { data } = await axios.post(
         `${BASE_URL}/auth/refresh`,
         {},
         { withCredentials: true }
       );
 
-      const newToken: string = data.data.accessToken;
-      const user = data.data.user;
+      const newToken = data.data?.accessToken;
+      const user = data.data?.user;
 
-      // Persist the new token and user in the store.
+      if (!newToken) throw new Error("No token from refresh");
+
       useAuthStore.getState().setAuth(user, newToken);
 
-      // Replay all queued requests with the fresh token.
       processQueue(null, newToken);
 
       if (original.headers) original.headers.Authorization = `Bearer ${newToken}`;
       return api(original);
     } catch (refreshError) {
-      // Refresh failed — session is truly expired.
       processQueue(refreshError, null);
       useAuthStore.getState().clearAuth();
 
-      // Redirect to login only in the browser.
       if (typeof window !== "undefined") {
-        window.location.href = "/auth/login";
+        window.location.href = "/login";
       }
-
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
     }
   }
 );
-
 export default api;

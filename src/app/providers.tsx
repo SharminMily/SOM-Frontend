@@ -8,10 +8,12 @@ export function Providers({
   children: React.ReactNode;
 }) {
   return (
-    <ThemeProvider
+     <ThemeProvider
       attribute="class"
-      defaultTheme="light"
+      defaultTheme="system"
       enableSystem
+      disableTransitionOnChange
+      storageKey="som-theme"
     >
       {children}
     </ThemeProvider>

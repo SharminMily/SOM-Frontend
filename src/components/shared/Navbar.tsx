@@ -64,7 +64,7 @@ export function Navbar() {
             <Search className="h-5 w-5" />
           </Button> */}
 
-         <Link href="/Auth/login">
+         <Link href="/login">
   <Button
     variant="ghost"
     size="icon"
