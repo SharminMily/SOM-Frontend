@@ -1,5 +1,4 @@
 import { USER_ROLE } from "@/constants/roles";
-import { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
   Users,
@@ -8,6 +7,17 @@ import {
   UsersRound,
   ListTodo,
   User,
+  ShieldCheck,
+  FolderKanban,
+  CalendarDays,
+  Bell,
+  House,
+  Building2,
+  CalendarCheck,
+  CalendarX,
+  DollarSign,
+  Megaphone,
+  Settings,
 } from "lucide-react";
 
 
@@ -20,9 +30,11 @@ export const sidebarItems = {
     href: "/dashboard/admin",
     icon: LayoutDashboard,
   },
+
+  // 👥 USER MANAGEMENT
   {
     title: "Employees",
-    href: "/dashboard/admin/employees",
+    href: "/dashboard/admin/allEemployees",
     icon: Users,
   },
   {
@@ -30,10 +42,71 @@ export const sidebarItems = {
     href: "/dashboard/admin/managers",
     icon: UserCog,
   },
+
+  // 🏢 ORGANIZATION
+  {
+    title: "Departments",
+    href: "/dashboard/admin/departments",
+    icon: Building2,
+  },
+
+  // 📋 TASK MANAGEMENT
+  {
+    title: "Tasks",
+    href: "/dashboard/admin/tasks",
+    icon: ListTodo,
+  },
+  {
+    title: "Projects",
+    href: "/dashboard/admin/projects",
+    icon: FolderKanban,
+  },
+
+  // ⏱ ATTENDANCE
+  {
+    title: "Attendance",
+    href: "/dashboard/admin/attendance",
+    icon: CalendarCheck,
+  },
+
+  // 🏖 LEAVE MANAGEMENT
+  {
+    title: "Leave Requests",
+    href: "/dashboard/admin/leaves",
+    icon: CalendarX,
+  },
+
+  // 💰 PAYROLL
+  {
+    title: "Payroll",
+    href: "/dashboard/admin/payroll",
+    icon: DollarSign,
+  },
+
+  // 📊 REPORTS
   {
     title: "Reports",
     href: "/dashboard/admin/reports",
     icon: FileText,
+  },
+
+  // 🔔 SYSTEM
+  {
+    title: "Announcements",
+    href: "/dashboard/admin/announcements",
+    icon: Megaphone,
+  },
+  {
+    title: "Notifications",
+    href: "/dashboard/admin/notifications",
+    icon: Bell,
+  },
+
+  // ⚙️ SETTINGS
+  {
+    title: "Settings",
+    href: "/dashboard/admin/settings",
+    icon: Settings,
   },
 ],
 
@@ -55,7 +128,7 @@ export const sidebarItems = {
   },
 ],
 
- [USER_ROLE.EMPLOYEE]: [
+[USER_ROLE.EMPLOYEE]: [
   {
     title: "Dashboard",
     href: "/dashboard/employee",
@@ -67,9 +140,34 @@ export const sidebarItems = {
     icon: ListTodo,
   },
   {
+    title: "My Projects",
+    href: "/dashboard/employee/projects",
+    icon: FolderKanban,
+  },
+  {
+    title: "Attendance",
+    href: "/dashboard/employee/attendance",
+    icon: ShieldCheck,
+  },
+  {
+    title: "Leave Requests",
+    href: "/dashboard/employee/leaveRequest",
+    icon: CalendarDays,
+  },
+  {
+    title: "Notifications",
+    href: "/dashboard/employee/notifications",
+    icon: Bell,
+  },
+  {
     title: "Profile",
     href: "/dashboard/employee/profile",
     icon: User,
   },
-],
+  {
+    title: "Home",
+    href: "/",
+    icon: House,
+  },
+]
 };

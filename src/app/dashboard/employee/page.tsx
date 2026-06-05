@@ -1,100 +1,245 @@
-'use client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Calendar, Clock, FileText, TrendingUp } from 'lucide-react';
+"use client";
 
-export default function EmployeeDashboard() {
+
+"use client";
+
+import { useEffect } from "react";
+import { useParams } from "next/navigation";
+
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useTaskStore } from "@/lib/store/task.store";
+
+export default function TaskDetailPage() {
+  const params = useParams();
+  const { selectedTask, fetchTaskById, updateStatus } = useTaskStore();
+
+  useEffect(() => {
+    fetchTaskById(params.id as string);
+  }, [params.id]);
+
+  if (!selectedTask) return <p>Loading...</p>;
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Welcome Back, Ayesa</h1>
+    <div className="p-6 space-y-4">
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Attendance Card */}
-        <Card className="dark:bg-zinc-900">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="w-5 h-5" /> Today
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold">09:15 AM</div>
-            <Badge variant="secondary" className="mt-2">PRESENT</Badge>
-            <Button className="w-full mt-4">Clock Out</Button>
-          </CardContent>
-        </Card>
+      <Card>
+        <CardContent className="p-4 space-y-2">
 
-        {/* Leave Balance */}
-        <Card className="dark:bg-zinc-900">
-          <CardHeader>
-            <CardTitle>Leave Balance</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span>Annual</span>
-              <span className="font-medium">18/20</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Sick</span>
-              <span className="font-medium">7/10</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Casual</span>
-              <span className="font-medium">4/5</span>
-            </div>
-          </CardContent>
-        </Card>
+          <h1 className="text-2xl font-bold">
+            {selectedTask.title}
+          </h1>
 
-        {/* Tasks */}
-        <Card className="dark:bg-zinc-900">
-          <CardHeader>
-            <CardTitle>My Tasks</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span>UI Design for Dashboard</span>
-                <Badge>High</Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span>API Integration</span>
-                <Badge variant="secondary">In Progress</Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <p className="text-gray-500">
+            {selectedTask.description || "No description"}
+          </p>
 
-        {/* Payroll */}
-        <Card className="dark:bg-zinc-900">
-          <CardHeader>
-            <CardTitle>Last Payroll</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">৳65,400</div>
-            <p className="text-sm text-green-600">Paid on May 30, 2026</p>
-          </CardContent>
-        </Card>
-      </div>
+          <p>Status: {selectedTask.status}</p>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="dark:bg-zinc-900">
-          <CardHeader>
-            <CardTitle>Recent Leave Requests</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* Table or list */}
-          </CardContent>
-        </Card>
+          <div className="flex gap-2">
 
-        <Card className="dark:bg-zinc-900">
-          <CardHeader>
-            <CardTitle>Announcements</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">Company picnic on June 15th</p>
-          </CardContent>
-        </Card>
-      </div>
+            <Button
+              onClick={() =>
+                updateStatus(selectedTask.id, "IN_PROGRESS")
+              }
+            >
+              Start
+            </Button>
+
+            <Button
+              onClick={() =>
+                updateStatus(selectedTask.id, "DONE")
+              }
+            >
+              Mark Done
+            </Button>
+
+          </div>
+
+        </CardContent>
+      </Card>
+
     </div>
   );
 }
+
+
+
+
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// import { Button } from "@/components/ui/button";
+// import { Badge } from "@/components/ui/badge";
+// import { Progress } from "@/components/ui/progress";
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// import { CheckCircle, Clock, Folder, Bell, Calendar } from "lucide-react";
+
+// export default function EmployeeDashboard() {
+//   return (
+//     <div className="p-6 space-y-6">
+
+//       {/* HEADER */}
+//       <div className="flex items-center justify-between">
+//         <div>
+//           <h1 className="text-2xl font-bold">Employee Dashboard</h1>
+//           <p className="text-muted-foreground">
+//             Welcome back! Here’s your daily overview.
+//           </p>
+//         </div>
+
+//         <Button>Clock In</Button>
+//       </div>
+
+//       {/* STATS */}
+//       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+//         <Card>
+//           <CardHeader>
+//             <CardTitle className="text-sm">Today Attendance</CardTitle>
+//           </CardHeader>
+//           <CardContent>
+//             <div className="flex items-center gap-2">
+//               <CheckCircle className="text-green-500" />
+//               <span className="font-medium">Present</span>
+//             </div>
+//           </CardContent>
+//         </Card>
+
+//         <Card>
+//           <CardHeader>
+//             <CardTitle className="text-sm">Pending Tasks</CardTitle>
+//           </CardHeader>
+//           <CardContent>
+//             <div className="flex items-center gap-2">
+//               <Clock className="text-orange-500" />
+//               <span className="font-medium">5 Tasks</span>
+//             </div>
+//           </CardContent>
+//         </Card>
+
+//         <Card>
+//           <CardHeader>
+//             <CardTitle className="text-sm">Active Projects</CardTitle>
+//           </CardHeader>
+//           <CardContent>
+//             <div className="flex items-center gap-2">
+//               <Folder className="text-blue-500" />
+//               <span className="font-medium">3 Projects</span>
+//             </div>
+//           </CardContent>
+//         </Card>
+
+//         <Card>
+//           <CardHeader>
+//             <CardTitle className="text-sm">Leave Balance</CardTitle>
+//           </CardHeader>
+//           <CardContent>
+//             <div className="flex items-center gap-2">
+//               <Calendar className="text-purple-500" />
+//               <span className="font-medium">12 Days</span>
+//             </div>
+//           </CardContent>
+//         </Card>
+//       </div>
+
+//       {/* MAIN TABS */}
+//       <Tabs defaultValue="tasks" className="space-y-4">
+
+//         <TabsList>
+//           <TabsTrigger value="tasks">My Tasks</TabsTrigger>
+//           <TabsTrigger value="projects">Projects</TabsTrigger>
+//           <TabsTrigger value="attendance">Attendance</TabsTrigger>
+//           <TabsTrigger value="notifications">Notifications</TabsTrigger>
+//         </TabsList>
+
+//         {/* TASKS */}
+//         <TabsContent value="tasks">
+//           <Card>
+//             <CardHeader>
+//               <CardTitle>My Tasks</CardTitle>
+//             </CardHeader>
+//             <CardContent className="space-y-3">
+
+//               {[1, 2, 3].map((t) => (
+//                 <div
+//                   key={t}
+//                   className="flex items-center justify-between border p-3 rounded-lg"
+//                 >
+//                   <div>
+//                     <p className="font-medium">Build Dashboard UI</p>
+//                     <p className="text-sm text-muted-foreground">
+//                       Due: 10 June 2026
+//                     </p>
+//                   </div>
+
+//                   <Badge>IN_PROGRESS</Badge>
+//                 </div>
+//               ))}
+
+//             </CardContent>
+//           </Card>
+//         </TabsContent>
+
+//         {/* PROJECTS */}
+//         <TabsContent value="projects">
+//           <Card>
+//             <CardHeader>
+//               <CardTitle>My Projects</CardTitle>
+//             </CardHeader>
+//             <CardContent className="space-y-4">
+
+//               {[1, 2].map((p) => (
+//                 <div key={p} className="space-y-2 border p-3 rounded-lg">
+
+//                   <div className="flex justify-between">
+//                     <p className="font-medium">Ghorer Fix</p>
+//                     <Badge>ACTIVE</Badge>
+//                   </div>
+
+//                   <Progress value={60} />
+//                 </div>
+//               ))}
+
+//             </CardContent>
+//           </Card>
+//         </TabsContent>
+
+//         {/* ATTENDANCE */}
+//         <TabsContent value="attendance">
+//           <Card>
+//             <CardHeader>
+//               <CardTitle>Attendance Summary</CardTitle>
+//             </CardHeader>
+//             <CardContent className="space-y-2">
+//               <p>Today: Present</p>
+//               <p>This Month: 22 Present / 2 Absent</p>
+//               <Button variant="outline">View Full Report</Button>
+//             </CardContent>
+//           </Card>
+//         </TabsContent>
+
+//         {/* NOTIFICATIONS */}
+//         <TabsContent value="notifications">
+//           <Card>
+//             <CardHeader>
+//               <CardTitle>Notifications</CardTitle>
+//             </CardHeader>
+
+//             <CardContent className="space-y-3">
+
+//               {[1, 2, 3].map((n) => (
+//                 <div key={n} className="border p-3 rounded-lg">
+//                   <p className="font-medium">Task Assigned</p>
+//                   <p className="text-sm text-muted-foreground">
+//                     You got a new task from your manager
+//                   </p>
+//                 </div>
+//               ))}
+
+//             </CardContent>
+//           </Card>
+//         </TabsContent>
+
+//       </Tabs>
+//     </div>
+//   );
+// }

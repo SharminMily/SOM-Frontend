@@ -33,7 +33,7 @@ export function LoginForm() {
     useForm<FormData>({ resolver: zodResolver(schema) });
 
 const onSubmit = async (data: FormData) => {
-  console.log("Submitting", data);
+  // console.log("Submitting", data);
   setServerError("");
 
   try {
@@ -42,7 +42,7 @@ const onSubmit = async (data: FormData) => {
       password: data.password 
     });
 
-    console.log("🔍 Full Login Response:", res.data);
+    // console.log("🔍 Full Login Response:", res.data);
 
     const responseData = res.data?.data ?? res.data;
     const accessToken = responseData?.accessToken;
