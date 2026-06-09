@@ -1,26 +1,51 @@
 import { create } from "zustand";
+import { taskApi } from "../api/task.api";
 
-import { taskApi } from "@/lib/api/task.api";
-import { Task } from "@/app/types/task";
+export const useTaskStore = create(
+  (set) => ({
+    tasks: [],
 
-export const useTaskStore = create((set) => ({
-  tasks: [],
-  selectedTask: null,
-  loading: false,
+    getTasks: async (
+      projectId: string
+    ) => {
+      const res =
+        await taskApi.getProjectTasks(
+          projectId
+        );
 
-  getMyTasks: async () => {
-    set({ loading: true });
-    const res = await taskApi.getMyTasks();
-    set({ tasks: res.data, loading: false });
-  },
+      set({
+        tasks: res.data || res,
+      });
+    },
 
-  fetchTaskById: async (id: string) => {
-    set({ loading: true });
-    const res = await taskApi.getTaskById(id);
+    createTask: async (
+      projectId: string,
+      data: any
+    ) => {
+      await taskApi.createTask(
+        projectId,
+        data
+      );
+    },
 
-    set({
-      selectedTask: res.data,
-      loading: false,
-    });
-  },
-}));
+    updateTask: async (
+      id: string,
+      data: any
+    ) => {
+      await taskApi.updateTask(
+        id,
+        data
+      );
+    },
+
+    deleteTask: async (id: string) => {
+      await taskApi.deleteTask(id);
+
+      set((state: any) => ({
+        tasks: state.tasks.filter(
+          (t: any) => t.id !== id
+        ),
+      }));
+    },
+  })
+);
