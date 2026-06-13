@@ -27,6 +27,7 @@ import { userApi } from "@/lib/api/user.api";
 
 export default function AllEmployees() {
   const [employees, setEmployees] = useState<any[]>([]);
+  // console.log("employees",employees);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
 
