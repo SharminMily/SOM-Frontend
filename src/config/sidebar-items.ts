@@ -37,11 +37,11 @@ export const sidebarItems = {
     href: "/dashboard/admin/allEemployees",
     icon: Users,
   },
-  {
-    title: "Managers",
-    href: "/dashboard/admin/managers",
-    icon: UserCog,
-  },
+  // {
+  //   title: "Managers",
+  //   href: "/dashboard/admin/managers",
+  //   icon: UserCog,
+  // },
 
   // 🏢 ORGANIZATION
   {
@@ -51,16 +51,17 @@ export const sidebarItems = {
   },
 
   // 📋 TASK MANAGEMENT
-  {
-    title: "Tasks",
-    href: "/dashboard/admin/tasks",
-    icon: ListTodo,
-  },
+
   {
     title: "Projects",
     href: "/dashboard/admin/projects",
     icon: FolderKanban,
   },
+  //   {
+  //   title: "Tasks",
+  //   href: "/dashboard/admin/projects",
+  //   icon: ListTodo,
+  // },
 
   // ⏱ ATTENDANCE
   {
