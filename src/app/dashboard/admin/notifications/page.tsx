@@ -5,7 +5,9 @@ import { useEffect, useState } from "react";
 import { notificationApi } from "@/lib/api/notification.api";
 
 import { Notification } from "@/app/types/notification";
+
 import NotificationList from "@/components/notifications/NotificationList";
+import NotificationDialog from "@/components/notifications/NotificationDialog";
 
 import {
   Card,
@@ -17,30 +19,32 @@ import {
 import { Button } from "@/components/ui/button";
 
 export default function NotificationsPage() {
-  const [
-    notifications,
-    setNotifications,
-  ] = useState<Notification[]>([]);
+  const [notifications, setNotifications] =
+    useState<Notification[]>([]);
 
-  const [
-    unreadCount,
-    setUnreadCount,
-  ] = useState(0);
+console.log("notifications", notifications);
+
+  const [unreadCount, setUnreadCount] =
+    useState(0);
 
   const loadData = async () => {
-    const [list, unread] =
-      await Promise.all([
-        notificationApi.getNotifications(),
-        notificationApi.getUnreadCount(),
-      ]);
+    try {
+      const [list, unread] =
+        await Promise.all([
+          notificationApi.getNotifications(),
+          notificationApi.getUnreadCount(),
+        ]);
 
-    setNotifications(
-      list.data.notifications
-    );
+      setNotifications(
+        list.data.notifications
+      );
 
-    setUnreadCount(
-      unread.data.count
-    );
+      setUnreadCount(
+        unread.data.count
+      );
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   useEffect(() => {
@@ -50,9 +54,7 @@ export default function NotificationsPage() {
   const handleRead = async (
     id: string
   ) => {
-    await notificationApi.markAsRead(
-      id
-    );
+    await notificationApi.markAsRead(id);
 
     loadData();
   };
@@ -77,13 +79,24 @@ export default function NotificationsPage() {
               Notifications
             </CardTitle>
 
-            <Button
-              onClick={
-                handleReadAll
-              }
-            >
-              Mark All Read
-            </Button>
+            <div className="flex gap-2">
+
+              {/* Create Notification */}
+              <NotificationDialog
+               
+  onSuccess={loadData}
+              />
+
+              <Button
+                variant="outline"
+                onClick={
+                  handleReadAll
+                }
+              >
+                Mark All Read
+              </Button>
+
+            </div>
 
           </div>
 

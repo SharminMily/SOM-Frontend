@@ -1,57 +1,61 @@
 import api from "./axios";
 
-
 export const notificationApi = {
-    getNotifications: async (
-        page = 1,
-        limit = 20
-    ) => {
-        const { data } = await api.get(
-            "/notifications/me",
-            {
-                params: { page, limit },
-            }
-        );
+  getNotifications: async (page = 1, limit = 20) => {
+    const { data } = await api.get("/notifications/me", {
+      params: { page, limit },
+    });
 
-        return data;
-    },
+    return data;
+  },
 
-    getUnreadCount: async () => {
-        const { data } = await api.get(
-            "/notifications/me/unread-count"
-        );
+  getUnreadCount: async () => {
+    const { data } = await api.get(
+      "/notifications/me/unread-count"
+    );
 
-        return data;
-    },
+    return data;
+  },
 
-    markAsRead: async (id: string) => {
-        const { data } = await api.patch(
-            `/notifications/${id}/read`
-        );
+  markAsRead: async (id: string) => {
+    const { data } = await api.patch(
+      `/notifications/${id}/read`
+    );
 
-        return data;
-    },
+    return data;
+  },
 
-    markAllAsRead: async () => {
-        const { data } = await api.patch(
-            "/notifications/me/read-all"
-        );
+  markAllAsRead: async () => {
+    const { data } = await api.patch(
+      "/notifications/me/read-all"
+    );
 
-        return data;
-    },
+    return data;
+  },
 
-    getAnnouncements: async () => {
-        const { data } = await api.get(
-          "/notifications/me",
-            {
-                params: {
-                    type: "ANNOUNCEMENT",
-                    page: 1,
-                    limit: 20,
-                },
-            }
-        );
+createNotification: async (payload: {
+  userId?: string;
+  title: string;
+  message: string;
+  type: string;
+}) => {
+  const { data } = await api.post("/notifications", payload);
+  return data;
+},
 
-        return data;
-    },
+  updateNotification: async (
+    id: string,
+    payload: {
+      title: string;
+      message: string;
+      type: string;
+    }
+  ) => {
+    const { data } = await api.patch(
+      `/notifications/${id}`,
+      payload
+    );
+
+    return data;
+  },
 };
