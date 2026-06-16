@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
-    DialogDescription,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -48,47 +48,58 @@ export default function NotificationDialog({
   const [type, setType] =
     useState(
       notification?.type ||
-        "ANNOUNCEMENT"
+      "ANNOUNCEMENT"
     );
 
-const handleSubmit = async () => {
-  try {
-    if (!title || !message) {
-      alert("Title and message required");
-      return;
-    }
+  const handleSubmit = async () => {
+    try {
+      if (!title.trim()) {
+        toast.error("Title required");
+        return;
+      }
 
-    console.log("Submitting notification:", {
-      title,
-      message,
-      type,
-    });
+      if (!message.trim()) {
+        toast.error("Message required");
+        return;
+      }
 
-    if (notification) {
-      await notificationApi.updateNotification(notification.id, {
+      console.log("Submitting notification:", {
         title,
         message,
         type,
       });
-    } else {
-      await notificationApi.createNotification({
-        userId: "", // For now, we can leave this empty or set it to a specific user ID
-        title,
-        message,
-        type,
-      });
+
+      if (notification) {
+        await notificationApi.updateNotification(
+          notification.id,
+          {
+            title,
+            message,
+            type,
+          }
+        );
+      } else {
+        await notificationApi.createNotification({
+          title,
+          message,
+          type,
+        });
+      }
+
+      toast.success("Notification created successfully");
+
+      setOpen(false);
+
+      onSuccess();
+    } catch (error: any) {
+      console.error(error);
+
+      toast.error(
+        error?.response?.data?.message ||
+        "Failed to create notification"
+      );
     }
-
-    alert("Notification saved successfully ✅");
-
-    setOpen(false);
-    onSuccess();
-  } catch (error) {
-    console.error(error);
-    alert("Failed to save notification ❌");
-  }
-};
-
+  };
 
   return (
     <Dialog
@@ -116,9 +127,9 @@ const handleSubmit = async () => {
               ? "Edit Notification"
               : "Create Notification"}
           </DialogTitle>
-   <DialogDescription>
-      Send notification to selected user
-    </DialogDescription>
+          <DialogDescription>
+            Send notification to selected user
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -154,7 +165,6 @@ const handleSubmit = async () => {
             </SelectTrigger>
 
             <SelectContent>
-
               <SelectItem value="ANNOUNCEMENT">
                 Announcement
               </SelectItem>
@@ -163,30 +173,17 @@ const handleSubmit = async () => {
                 Task Assigned
               </SelectItem>
 
-              <SelectItem value="TASK_COMPLETED">
-                Task Completed
+              <SelectItem value="LEAVE_STATUS">
+                Leave Status
               </SelectItem>
 
-              <SelectItem value="LEAVE_REQUEST">
-                Leave Request
-              </SelectItem>
-
-              <SelectItem value="LEAVE_APPROVED">
-                Leave Approved
-              </SelectItem>
-
-              <SelectItem value="LEAVE_REJECTED">
-                Leave Rejected
-              </SelectItem>
-
-              <SelectItem value="PROJECT">
-                Project
+              <SelectItem value="PAYSLIP_READY">
+                Payslip Ready
               </SelectItem>
 
               <SelectItem value="SYSTEM">
                 System
               </SelectItem>
-
             </SelectContent>
 
           </Select>

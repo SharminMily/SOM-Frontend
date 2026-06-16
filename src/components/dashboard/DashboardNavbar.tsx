@@ -59,6 +59,7 @@ export default function Navbar({ onMenuClick, name, role }: Props) {
 
         {/* USER */}
         <UserDropdown name={name} role={role} />
+     
       </div>
 
       {/* RIGHT SIDE (Logout only) */}

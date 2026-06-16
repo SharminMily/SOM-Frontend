@@ -34,7 +34,6 @@ export const notificationApi = {
   },
 
 createNotification: async (payload: {
-  userId?: string;
   title: string;
   message: string;
   type: string;

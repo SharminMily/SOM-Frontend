@@ -1,100 +1,199 @@
-'use client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Calendar, Clock, FileText, TrendingUp } from 'lucide-react';
+"use client";
 
-export default function EmployeeDashboard() {
+import {
+  Users,
+  Briefcase,
+  CalendarDays,
+  TrendingUp,
+  Bell,
+  Clock,
+} from "lucide-react";
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+import { Badge } from "@/components/ui/badge";
+
+interface ManagerDashboardProps {
+  user?: {
+    name?: string;
+  };
+}
+
+// console.log("Rendering Manager Dashboard with user:", user);
+
+export default function ManagerDashboard({
+  user,
+}: ManagerDashboardProps) {
+  const managerName = user?.name || "Manager0";
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Welcome Back, Ayesa</h1>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Welcome Back, {managerName} 👋
+        </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Attendance Card */}
-        <Card className="dark:bg-zinc-900">
+        <p className="text-muted-foreground mt-2">
+          Here's an overview of your team and organization today.
+        </p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Team Members
+                </p>
+                <h2 className="text-3xl font-bold">
+                  No Information
+                </h2>
+              </div>
+
+              <Users className="h-10 w-10 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Active Projects
+                </p>
+                <h2 className="text-3xl font-bold">
+                  No Information
+                </h2>
+              </div>
+
+              <Briefcase className="h-10 w-10 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Pending Leave Requests
+                </p>
+                <h2 className="text-3xl font-bold">
+                  No Information
+                </h2>
+              </div>
+
+              <CalendarDays className="h-10 w-10 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Team Performance
+                </p>
+                <h2 className="text-3xl font-bold">
+                  No Information
+                </h2>
+              </div>
+
+              <TrendingUp className="h-10 w-10 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Section */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Team Updates */}
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Clock className="w-5 h-5" /> Today
+              <Users size={18} />
+              Team Updates
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold">09:15 AM</div>
-            <Badge variant="secondary" className="mt-2">PRESENT</Badge>
-            <Button className="w-full mt-4">Clock Out</Button>
-          </CardContent>
-        </Card>
 
-        {/* Leave Balance */}
-        <Card className="dark:bg-zinc-900">
-          <CardHeader>
-            <CardTitle>Leave Balance</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span>Annual</span>
-              <span className="font-medium">18/20</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Sick</span>
-              <span className="font-medium">7/10</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Casual</span>
-              <span className="font-medium">4/5</span>
+          <CardContent>
+            <div className="flex items-center justify-center h-40 text-muted-foreground">
+              No Information Available
             </div>
           </CardContent>
         </Card>
 
-        {/* Tasks */}
-        <Card className="dark:bg-zinc-900">
+        {/* Leave Requests */}
+        <Card>
           <CardHeader>
-            <CardTitle>My Tasks</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <CalendarDays size={18} />
+              Leave Requests
+            </CardTitle>
           </CardHeader>
+
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span>UI Design for Dashboard</span>
-                <Badge>High</Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span>API Integration</span>
-                <Badge variant="secondary">In Progress</Badge>
-              </div>
+            <div className="flex items-center justify-center h-40 text-muted-foreground">
+              No Information Available
             </div>
           </CardContent>
         </Card>
 
-        {/* Payroll */}
-        <Card className="dark:bg-zinc-900">
+        {/* Announcements */}
+        <Card>
           <CardHeader>
-            <CardTitle>Last Payroll</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Bell size={18} />
+              Announcements
+            </CardTitle>
           </CardHeader>
+
           <CardContent>
-            <div className="text-3xl font-bold">৳65,400</div>
-            <p className="text-sm text-green-600">Paid on May 30, 2026</p>
+            <div className="flex items-center justify-center h-40 text-muted-foreground">
+              No Information Available
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Activities */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock size={18} />
+              Recent Activities
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <div className="flex items-center justify-center h-40 text-muted-foreground">
+              No Information Available
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="dark:bg-zinc-900">
-          <CardHeader>
-            <CardTitle>Recent Leave Requests</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* Table or list */}
-          </CardContent>
-        </Card>
+      {/* Manager Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Manager Summary</CardTitle>
+        </CardHeader>
 
-        <Card className="dark:bg-zinc-900">
-          <CardHeader>
-            <CardTitle>Announcements</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">Company picnic on June 15th</p>
-          </CardContent>
-        </Card>
-      </div>
+        <CardContent>
+          <Badge variant="secondary">
+            No Information Available
+          </Badge>
+        </CardContent>
+      </Card>
     </div>
   );
 }

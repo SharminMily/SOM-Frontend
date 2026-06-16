@@ -24,151 +24,154 @@ import {
 
 
 export const sidebarItems = {
-[USER_ROLE.ADMIN]: [
-  {
-    title: "Dashboard",
-    href: "/dashboard/admin",
-    icon: LayoutDashboard,
-  },
+  [USER_ROLE.ADMIN]: [
+    {
+      title: "Dashboard",
+      href: "/dashboard/admin",
+      icon: LayoutDashboard,
+    },
 
-  // 👥 USER MANAGEMENT
-  {
-    title: "Employees",
-    href: "/dashboard/admin/allEemployees",
-    icon: Users,
-  },
-  // {
-  //   title: "Managers",
-  //   href: "/dashboard/admin/managers",
-  //   icon: UserCog,
-  // },
+    // 👥 USER MANAGEMENT
+    {
+      title: "Employees",
+      href: "/dashboard/admin/allEemployees",
+      icon: Users,
+    },
+    // {
+    //   title: "Managers",
+    //   href: "/dashboard/admin/managers",
+    //   icon: UserCog,
+    // },
 
-  // 🏢 ORGANIZATION
-  {
-    title: "Departments",
-    href: "/dashboard/admin/departments",
-    icon: Building2,
-  },
+    // 🏢 ORGANIZATION
+    {
+      title: "Departments",
+      href: "/dashboard/admin/departments",
+      icon: Building2,
+    },
 
-  // 📋 TASK MANAGEMENT
+    // 📋 TASK MANAGEMENT
 
-  {
-    title: "Projects",
-    href: "/dashboard/admin/projects",
-    icon: FolderKanban,
-  },
-  //   {
-  //   title: "Tasks",
-  //   href: "/dashboard/admin/projects",
-  //   icon: ListTodo,
-  // },
+    {
+      title: "Projects",
+      href: "/dashboard/admin/projects",
+      icon: FolderKanban,
+    },
 
-  // ⏱ ATTENDANCE
-  {
-    title: "Attendance",
-    href: "/dashboard/admin/attendance",
-    icon: CalendarCheck,
-  },
+    // 🔔 SYSTEM
+    {
+      title: "Notifications",
+      href: "/dashboard/admin/notifications",
+      icon: Bell,
+    },
+    {
+      title: "Announcements",
+      href: "/dashboard/admin/announcements",
+      icon: Megaphone,
+    },
 
-  // 🏖 LEAVE MANAGEMENT
-  {
-    title: "Leave Requests",
-    href: "/dashboard/admin/leaves",
-    icon: CalendarX,
-  },
+    //   {
+    //   title: "Tasks",
+    //   href: "/dashboard/admin/tasks",
+    //   icon: ListTodo,
+    // },
 
-  // 💰 PAYROLL
-  {
-    title: "Payroll",
-    href: "/dashboard/admin/payroll",
-    icon: DollarSign,
-  },
+    // ⏱ ATTENDANCE
+    {
+      title: "Attendance",
+      href: "/dashboard/admin/attendance",
+      icon: CalendarCheck,
+    },
 
-  // 📊 REPORTS
-  {
-    title: "Reports",
-    href: "/dashboard/admin/reports",
-    icon: FileText,
-  },
+    // 🏖 LEAVE MANAGEMENT
+    {
+      title: "Leave Requests",
+      href: "/dashboard/admin/leaves",
+      icon: CalendarX,
+    },
 
-  // 🔔 SYSTEM
-  {
-    title: "Announcements",
-    href: "/dashboard/admin/announcements",
-    icon: Megaphone,
-  },
-  {
-    title: "Notifications",
-    href: "/dashboard/admin/notifications",
-    icon: Bell,
-  },
+    // 💰 PAYROLL
+    {
+      title: "Payroll",
+      href: "/dashboard/admin/payroll",
+      icon: DollarSign,
+    },
 
-  // ⚙️ SETTINGS
-  {
-    title: "Settings",
-    href: "/dashboard/admin/settings",
-    icon: Settings,
-  },
-],
+    // 📊 REPORTS
+    {
+      title: "Reports",
+      href: "/dashboard/admin/reports",
+      icon: FileText,
+    },
 
-[USER_ROLE.MANAGER]: [
-  {
-    title: "Dashboard",
-    href: "/dashboard/manager",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Team",
-    href: "/dashboard/manager/team",
-    icon: UsersRound,
-  },
-  {
-    title: "Tasks",
-    href: "/dashboard/manager/tasks",
-    icon: ListTodo,
-  },
-],
 
-[USER_ROLE.EMPLOYEE]: [
-  {
-    title: "Dashboard",
-    href: "/dashboard/employee",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "My Tasks",
-    href: "/dashboard/employee/tasks",
-    icon: ListTodo,
-  },
-  {
-    title: "My Projects",
-    href: "/dashboard/employee/projects",
-    icon: FolderKanban,
-  },
-  {
-    title: "Attendance",
-    href: "/dashboard/employee/attendance",
-    icon: ShieldCheck,
-  },
-  {
-    title: "Leave Requests",
-    href: "/dashboard/employee/leaveRequest",
-    icon: CalendarDays,
-  },
-  {
-    title: "Notifications",
-    href: "/dashboard/employee/notifications",
-    icon: Bell,
-  },
-  {
-    title: "Profile",
-    href: "/dashboard/employee/profile",
-    icon: User,
-  },
-  {
-    title: "Home",
-    href: "/",
-    icon: House,
-  },
-]
+
+    // // ⚙️ SETTINGS
+    // {
+    //   title: "Settings",
+    //   href: "/dashboard/admin/settings",
+    //   icon: Settings,
+    // },
+  ],
+
+  [USER_ROLE.MANAGER]: [
+    {
+      title: "Dashboard",
+      href: "/dashboard/manager",
+      icon: LayoutDashboard,
+    },
+    {
+      title: "Team",
+      href: "/dashboard/manager/team",
+      icon: UsersRound,
+    },
+    {
+      title: "Tasks",
+      href: "/dashboard/manager/tasks",
+      icon: ListTodo,
+    },
+  ],
+
+  [USER_ROLE.EMPLOYEE]: [
+    {
+      title: "Dashboard",
+      href: "/dashboard/employee",
+      icon: LayoutDashboard,
+    },
+    {
+      title: "My Tasks",
+      href: "/dashboard/employee/tasks",
+      icon: ListTodo,
+    },
+    {
+      title: "My Projects",
+      href: "/dashboard/employee/projects",
+      icon: FolderKanban,
+    },
+    {
+      title: "Attendance",
+      href: "/dashboard/employee/attendance",
+      icon: ShieldCheck,
+    },
+    {
+      title: "Leave Requests",
+      href: "/dashboard/employee/leaveRequest",
+      icon: CalendarDays,
+    },
+    {
+      title: "Notifications",
+      href: "/dashboard/employee/notifications",
+      icon: Bell,
+    },
+    {
+      title: "Profile",
+      href: "/dashboard/employee/profile",
+      icon: User,
+    },
+    {
+      title: "Home",
+      href: "/",
+      icon: House,
+    },
+  ]
 };
