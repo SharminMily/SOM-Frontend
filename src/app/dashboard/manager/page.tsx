@@ -33,8 +33,7 @@ export default function ManagerDashboard({
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
+          <div>
         <h1 className="text-3xl font-bold tracking-tight">
           Welcome Back, {managerName} 👋
         </h1>
@@ -117,7 +116,7 @@ export default function ManagerDashboard({
 
       {/* Main Section */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Team Updates */}
+    
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -133,7 +132,7 @@ export default function ManagerDashboard({
           </CardContent>
         </Card>
 
-        {/* Leave Requests */}
+     
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -165,7 +164,7 @@ export default function ManagerDashboard({
           </CardContent>
         </Card>
 
-        {/* Recent Activities */}
+    
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -182,7 +181,6 @@ export default function ManagerDashboard({
         </Card>
       </div>
 
-      {/* Manager Summary */}
       <Card>
         <CardHeader>
           <CardTitle>Manager Summary</CardTitle>
