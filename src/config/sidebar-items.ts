@@ -125,10 +125,64 @@ export const sidebarItems = {
       href: "/dashboard/manager/team",
       icon: UsersRound,
     },
+        // 📋 TASK MANAGEMENT
+
     {
-      title: "Tasks",
-      href: "/dashboard/manager/tasks",
-      icon: ListTodo,
+      title: "Projects",
+      href: "/dashboard/manager/projects",
+      icon: FolderKanban,
+    },
+    // {
+    //   title: "Tasks",
+    //   href: "/dashboard/manager/tasks",
+    //   icon: ListTodo,
+    // },
+  
+
+    // 🔔 SYSTEM
+    {
+      title: "Notifications",
+      href: "/dashboard/manager/notifications",
+      icon: Bell,
+    },
+    {
+      title: "Announcements",
+      href: "/dashboard/manager/announcements",
+      icon: Megaphone,
+    },
+
+    //   {
+    //   title: "Tasks",
+    //   href: "/dashboard/manager/tasks",
+    //   icon: ListTodo,
+    // },
+
+    // ⏱ ATTENDANCE
+    {
+      title: "Attendance",
+      href: "/dashboard/manager/attendance",
+      icon: CalendarCheck,
+    },
+
+    // 🏖 LEAVE MANAGEMENT
+    {
+      title: "Leave Requests",
+      href: "/dashboard/manager/leaves",
+      icon: CalendarX,
+    },
+
+    // 💰 PAYROLL
+    {
+      title: "Payroll",
+      href: "/dashboard/manager/payroll",
+      icon: DollarSign,
+    },
+
+    // 📊 REPORTS
+    {
+      title: "Reports",
+      href: "/dashboard/manager/reports",
+      icon: FileText,
     },
   ],
 
