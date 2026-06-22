@@ -3,7 +3,7 @@
 import { Notification } from "@/app/types/notification";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import NotificationDialog from "@/components/notifications/NotificationDialog";
+import NotificationDialog from "./NotificationDialog";
 
 interface Props {
   notifications: Notification[];
@@ -16,59 +16,70 @@ export default function NotificationList({
   onRead,
   onRefresh,
 }: Props) {
+  if (!notifications.length) {
+    return (
+      <div className="flex items-center justify-center py-12 text-muted-foreground">
+        No Notifications Found
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {notifications.map((notification) => (
         <div
           key={notification.id}
-          className={`
-            rounded-lg border p-4 flex justify-between items-start
-            ${
-              notification.isRead
-                ? "bg-muted/20"
-                : "bg-background"
-            }
-          `}
+          className={`rounded-xl border p-5 transition-all ${
+            notification.isRead
+              ? "bg-muted/20"
+              : "bg-primary/5 border-primary/20"
+          }`}
         >
-          <div>
-            <div className="flex gap-2 items-center">
-              <h3 className="font-semibold">
-                {notification.title}
-              </h3>
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">
+                  {notification.title}
+                </h3>
 
-              {!notification.isRead && (
-                <Badge>New</Badge>
-              )}
+                {!notification.isRead && (
+                  <Badge>New</Badge>
+                )}
+
+                <Badge variant="outline">
+                  {notification.type}
+                </Badge>
+              </div>
+
+              <p className="text-muted-foreground">
+                {notification.message}
+              </p>
+
+              <p className="text-xs text-muted-foreground">
+                {new Date(
+                  notification.createdAt
+                ).toLocaleString()}
+              </p>
             </div>
 
-            <p className="text-muted-foreground text-sm mt-1">
-              {notification.message}
-            </p>
+            <div className="flex gap-2">
+              {!notification.isRead && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    onRead(notification.id)
+                  }
+                >
+                  Mark Read
+                </Button>
+              )}
 
-            <p className="text-xs text-muted-foreground mt-2">
-              {new Date(
-                notification.createdAt
-              ).toLocaleString()}
-            </p>
-          </div>
-
-          {/* RIGHT SIDE ACTIONS */}
-          <div className="flex gap-2">
-            {!notification.isRead && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onRead(notification.id)}
-              >
-                Mark Read
-              </Button>
-            )}
-
-            {/* EDIT BUTTON */}
-            <NotificationDialog
-              notification={notification}
-              onSuccess={onRefresh}
-            />
+              <NotificationDialog
+                notification={notification}
+                onSuccess={onRefresh}
+              />
+            </div>
           </div>
         </div>
       ))}
