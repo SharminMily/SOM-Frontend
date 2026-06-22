@@ -35,7 +35,7 @@ export default function NotificationList({
               : "bg-primary/5 border-primary/20"
           }`}
         >
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 p-4">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold text-lg">
