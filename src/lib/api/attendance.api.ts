@@ -1,18 +1,55 @@
 import api from "./axios";
-
 export const attendanceApi = {
-  getMyAttendance: async () => {
-    const res = await api.get("/attendance/me");
-    return res.data.data; // IMPORTANT FIX
-  },
+  // Employee
+  clockIn: (payload?: { note?: string }) =>
+    api.post("/attendance/clock-in", payload).then((r) => r.data),
 
-  clockIn: async () => {
-    const res = await api.post("/attendance/clock-in");
-    return res.data;
-  },
+  clockOut: () =>
+    api.patch("/attendance/clock-out").then((r) => r.data),
 
-  clockOut: async () => {
-    const res = await api.patch("/attendance/clock-out");
-    return res.data;
-  },
+  getMyAttendance: (month?: number, year?: number) =>
+    api
+      .get("/attendance/me", {
+        params: { month, year },
+      })
+      .then((r) => r.data),
+
+  // Admin / Manager
+  getUserAttendance: (
+    userId: string,
+    month?: number,
+    year?: number
+  ) =>
+    api
+      .get(`/attendance/user/${userId}`, {
+        params: { month, year },
+      })
+      .then((r) => r.data),
+
+  getDepartmentAttendance: (
+    departmentId: string,
+    month?: number,
+    year?: number
+  ) =>
+    api
+      .get(`/attendance/department/${departmentId}`, {
+        params: { month, year },
+      })
+      .then((r) => r.data),
+
+  getAttendanceStats: (departmentId: string) =>
+    api
+      .get(`/attendance/stats/${departmentId}`)
+      .then((r) => r.data),
+
+  overrideAttendance: (
+    attendanceId: string,
+    payload: {
+      status: "PRESENT" | "LATE" | "ABSENT";
+      note?: string;
+    }
+  ) =>
+    api
+      .patch(`/attendance/${attendanceId}`, payload)
+      .then((r) => r.data),
 };
