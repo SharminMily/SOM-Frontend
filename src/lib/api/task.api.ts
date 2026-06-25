@@ -10,6 +10,10 @@ export const taskApi = {
     const res = await api.post(`/task/project/${projectId}`, data);
     return res.data;
   },
+  getMyTasks: async () => {
+  const res = await api.get("/task/my");
+  return res.data;
+},
 
   getTaskById: async (id: string) => {
     const res = await api.get(`/task/${id}`);
@@ -20,6 +24,16 @@ export const taskApi = {
     const res = await api.patch(`/task/${id}`, data);
     return res.data;
   },
+  updateTaskStatus: async (
+  id: string,
+  status: string
+) => {
+  const res = await api.patch(`/task/${id}`, {
+    status,
+  });
+
+  return res.data;
+},
 
   deleteTask: async (id: string) => {
     const res = await api.delete(`/task/${id}`);

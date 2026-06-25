@@ -197,11 +197,11 @@ export const sidebarItems = {
       href: "/dashboard/employee/tasks",
       icon: ListTodo,
     },
-    {
-      title: "My Projects",
-      href: "/dashboard/employee/projects",
-      icon: FolderKanban,
-    },
+    // {
+    //   title: "My Projects",
+    //   href: "/dashboard/employee/projects",
+    //   icon: FolderKanban,
+    // },
     {
       title: "Attendance",
       href: "/dashboard/employee/attendance",
