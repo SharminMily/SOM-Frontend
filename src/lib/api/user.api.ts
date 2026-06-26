@@ -16,4 +16,20 @@ export const userApi = {
     const res = await api.delete(`/user/${id}`);
     return res.data;
   },
+   // Logged in user
+  getMyProfile: async () => {
+    const { data } = await api.get("/user/me");
+    return data;
+  },
+
+  updateMyProfile: async (payload: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    avatarUrl?: string;
+  }) => {
+    const { data } = await api.patch("/user/me", payload);
+    return data;
+  },
+  
 };

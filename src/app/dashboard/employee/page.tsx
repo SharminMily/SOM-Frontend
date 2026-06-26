@@ -1,488 +1,484 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { attendanceApi } from "@/lib/api/attendance.api";
-import { notificationApi } from "@/lib/api/notification.api";
-import { projectApi } from "@/lib/api/project.api";
+import { dashboardApi } from "@/lib/api/dashboard.api";
+import { toast } from "sonner";
+
 import {
-  LogIn,
-  LogOut,
-  Calendar,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+import {
+  Folder,
+  ListTodo,
+  Clock3,
+  CheckCircle,
   Bell,
-  Briefcase,
-  CheckCircle2,
-  Circle,
-  Mail,
-  Building2,
-  MapPin,
-  Phone,
-  Clock,
+  Loader2,
+  Calendar,
+  ClipboardList,
+  TrendingUp,
+  DollarSign,
+  Eye,
 } from "lucide-react";
 
-// ─── helpers ─────────────────────────────────────────────────────────────────
+import StatCard from "@/components/dashboard/stat-card";
+import { DashboardData } from "@/app/types/dashboard";
 
-function extractArray(res: any): any[] {
-  if (Array.isArray(res)) return res;
-  if (Array.isArray(res?.data)) return res.data;
-  if (Array.isArray(res?.data?.items)) return res.data.items;
-  return [];
-}
+/* ─── tiny helpers ─────────────────────────────────────────── */
 
-function fmt(iso: string | null) {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function calcDuration(clockIn: string | null, clockOut: string | null) {
-  if (!clockIn || !clockOut) return null;
-  const mins = Math.round(
-    (new Date(clockOut).getTime() - new Date(clockIn).getTime()) / 60000
-  );
-  return `${Math.floor(mins / 60)}h ${mins % 60}m`;
-}
-
-function timeAgo(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
-
-function initials(name: string) {
-  return name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
-}
-
-// ─── sub-components ───────────────────────────────────────────────────────────
-
-type BadgeVariant = "green" | "blue" | "amber" | "red" | "purple" | "gray";
-
-const BADGE_STYLES: Record<BadgeVariant, string> = {
-  green:  "bg-[#E1F5EE] text-[#0F6E56] border-[#5DCAA5]",
-  blue:   "bg-[#E6F1FB] text-[#185FA5] border-[#85B7EB]",
-  amber:  "bg-[#FAEEDA] text-[#854F0B] border-[#EF9F27]",
-  red:    "bg-[#FCEBEB] text-[#A32D2D] border-[#F09595]",
-  purple: "bg-[#EEEDFE] text-[#534AB7] border-[#AFA9EC]",
-  gray:   "bg-[#F1EFE8] text-[#5F5E5A] border-[#B4B2A9]",
+const priorityStyles: Record<string, string> = {
+  HIGH:   "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",
+  MEDIUM: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+  LOW:    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
 };
 
-function Badge({
-  children,
-  variant,
+const statusStyles: Record<string, string> = {
+  TODO:        "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
+  IN_PROGRESS: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+  REVIEW:      "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300",
+  DONE:        "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+};
+
+function PillBadge({
+  label,
+  styleMap,
+  fallback = "bg-slate-100 text-slate-600",
 }: {
-  children: React.ReactNode;
-  variant: BadgeVariant;
+  label: string;
+  styleMap: Record<string, string>;
+  fallback?: string;
 }) {
+  const cls = styleMap[label?.toUpperCase()] ?? fallback;
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${BADGE_STYLES[variant]}`}
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${cls}`}
     >
-      {children}
+      {label}
     </span>
   );
 }
 
-function StatCard({
+/* ─── leave bar ────────────────────────────────────────────── */
+
+const leaveColors = ["bg-indigo-500", "bg-cyan-500", "bg-teal-500"];
+
+function LeaveBar({
   label,
-  value,
-  sub,
+  total,
+  used,
   color,
 }: {
   label: string;
-  value: number | string;
-  sub: string;
+  total: number;
+  used: number;
   color: string;
 }) {
+  const remaining = total - used;
+  const pct = total > 0 ? (remaining / total) * 100 : 0;
   return (
-    <Card className="rounded-xl border shadow-none">
-      <CardContent className="p-4">
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-          {label}
-        </p>
-        <p className={`text-2xl font-medium ${color}`}>{value}</p>
-        <p className="text-[11px] text-muted-foreground mt-1">{sub}</p>
-      </CardContent>
-    </Card>
-  );
-}
-
-function SectionCard({
-  title,
-  sub,
-  badge,
-  children,
-}: {
-  title: string;
-  sub?: string;
-  badge?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <Card className="rounded-xl border shadow-none overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/20">
-        <div>
-          <p className="text-sm font-medium">{title}</p>
-          {sub && <p className="text-[11px] text-muted-foreground mt-0.5">{sub}</p>}
-        </div>
-        {badge}
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-muted-foreground">{label}</span>
+        <span className="font-semibold tabular-nums">
+          {remaining}
+          <span className="font-normal text-muted-foreground"> / {total}</span>
+        </span>
       </div>
-      {children}
-    </Card>
-  );
-}
-
-function InfoRow({ label, value, icon: Icon }: { label: string; value: string; icon: any }) {
-  return (
-    <div className="flex items-center justify-between">
-      <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-        <Icon className="w-3 h-3" />
-        {label}
-      </p>
-      <p className="text-[11px] text-foreground">{value}</p>
+      <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+        <div
+          className={`h-full rounded-full transition-all ${color}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
     </div>
   );
 }
 
-// ─── page ─────────────────────────────────────────────────────────────────────
+/* ─── info row ─────────────────────────────────────────────── */
 
-export default function Employee() {
-  const [todayAttendance, setTodayAttendance] = useState<any>(null);
-  const [attendanceHistory, setAttendanceHistory] = useState<any[]>([]);
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [projects, setProjects] = useState<any[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+function InfoRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between py-2.5 border-b last:border-0 border-border/60">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <div className="text-sm font-medium">{children}</div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MAIN COMPONENT
+══════════════════════════════════════════════════════════════ */
+
+export default function EmployeeDashboard() {
   const [loading, setLoading] = useState(true);
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+
+  const loadDashboard = async () => {
+    try {
+      setLoading(true);
+      const res = await dashboardApi.getEmployeeDashboard();
+      setDashboard(res.data);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to load dashboard");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        const now = new Date();
-
-        const [attRes, notiRes, notiCountRes, projRes] = await Promise.allSettled([
-          attendanceApi.getMyAttendance(now.getMonth() + 1, now.getFullYear()),
-          notificationApi.getNotifications(),
-          notificationApi.getUnreadCount(),
-          projectApi.getAllProjects(),
-        ]);
-
-        if (attRes.status === "fulfilled") {
-          const data = extractArray(attRes.value);
-          setAttendanceHistory(data);
-          const todayDate = now.toISOString().split("T")[0];
-          setTodayAttendance(
-            data.find((x: any) => (x.date ?? "").slice(0, 10) === todayDate) ?? null
-          );
-        }
-
-        if (notiRes.status === "fulfilled") {
-          setNotifications(extractArray(notiRes.value).slice(0, 4));
-        }
-
-        if (notiCountRes.status === "fulfilled") {
-          setUnreadCount(
-            notiCountRes.value?.data?.count ?? notiCountRes.value?.count ?? 0
-          );
-        }
-
-        if (projRes.status === "fulfilled") {
-          setProjects(extractArray(projRes.value).slice(0, 3));
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    loadDashboard();
   }, []);
 
-  // derived stats
-  const presentDays = attendanceHistory.filter((r) => r.status === "PRESENT").length;
-  const activeProjects = projects.filter((p) => p.status === "ACTIVE").length;
-  const dur = calcDuration(todayAttendance?.clockIn, todayAttendance?.clockOut);
-  const workedMins = todayAttendance?.clockIn
-    ? Math.round((Date.now() - new Date(todayAttendance.clockIn).getTime()) / 60000)
-    : 0;
-  const progressPct = Math.min(Math.round((workedMins / 480) * 100), 100);
+  /* ── skeleton ── */
+  if (loading) {
+    return (
+      <div className="space-y-6 p-6">
+        <Skeleton className="h-40 w-full rounded-3xl" />
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 rounded-2xl" />
+          ))}
+        </div>
+        <div className="grid gap-5 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-52 rounded-2xl" />
+          ))}
+        </div>
+        <Skeleton className="h-64 w-full rounded-2xl" />
+      </div>
+    );
+  }
 
-  const STATUS_BADGE: Record<string, BadgeVariant> = {
-    ACTIVE: "green",
-    PLANNING: "blue",
-    ON_HOLD: "amber",
-    COMPLETED: "purple",
-  };
-  const STATUS_LABEL: Record<string, string> = {
-    ACTIVE: "Active",
-    PLANNING: "Planning",
-    ON_HOLD: "On hold",
-    COMPLETED: "Completed",
-  };
-  const STATUS_FILL: Record<string, string> = {
-    ACTIVE: "#1D9E75",
-    PLANNING: "#378ADD",
-    ON_HOLD: "#EF9F27",
-    COMPLETED: "#7F77DD",
-  };
+  if (!dashboard) return null;
 
-  const today = new Date().toLocaleDateString(undefined, {
-    weekday: "long", month: "long", day: "numeric", year: "numeric",
-  });
+  const profile = dashboard.profile;
+  const stats   = dashboard.stats;
+
+  const leaveTypes = [
+    {
+      label: "Annual",
+      total: dashboard.leave?.balance?.annualTotal ?? 0,
+      used:  dashboard.leave?.balance?.annualUsed  ?? 0,
+      color: leaveColors[0],
+    },
+    {
+      label: "Sick",
+      total: dashboard.leave?.balance?.sickTotal ?? 0,
+      used:  dashboard.leave?.balance?.sickUsed  ?? 0,
+      color: leaveColors[1],
+    },
+    {
+      label: "Casual",
+      total: dashboard.leave?.balance?.casualTotal ?? 0,
+      used:  dashboard.leave?.balance?.casualUsed  ?? 0,
+      color: leaveColors[2],
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-muted/30 p-6 space-y-6">
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto max-w-screen-2xl space-y-6 p-4 sm:p-6 lg:p-8">
 
-      {/* ── Greeting ── */}
-      <div className="flex items-start justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-[#CECBF6] text-[#534AB7] flex items-center justify-center text-base font-medium flex-shrink-0">
-            RH
-          </div>
-          <div>
-            <p className="text-lg font-medium">Good morning, Rahim</p>
-            <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
-              <Briefcase className="w-3.5 h-3.5" />
-              Software Engineer · Engineering Dept
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-col items-end gap-1.5">
-          <p className="text-xs text-muted-foreground">{today}</p>
-          {todayAttendance?.clockIn && (
-            <Badge variant="green">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75]" />
-              Clocked in · {fmt(todayAttendance.clockIn)}
-            </Badge>
-          )}
-        </div>
-      </div>
+        {/* ══ PROFILE HERO ══ */}
+        <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+          {/* subtle gradient strip */}
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-pink-500" />
 
-      {/* ── Stats ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard label="Attendance"    value={presentDays}    sub="days present"       color="text-[#0F6E56]" />
-        <StatCard label="Leave balance" value={8}              sub="days remaining"     color="text-[#185FA5]" />
-        <StatCard label="Active projects" value={activeProjects} sub="assigned to you"  color="text-[#534AB7]" />
-        <StatCard label="Tasks due"     value={5}              sub="this week"          color="text-[#854F0B]" />
-      </div>
-
-      {/* ── Attendance + Leave ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-        <SectionCard
-          title="Today's attendance"
-          sub={new Date().toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}
-          badge={
-            todayAttendance?.status ? (
-              <Badge variant={todayAttendance.status === "PRESENT" ? "green" : todayAttendance.status === "LATE" ? "amber" : "red"}>
-                {todayAttendance.status.charAt(0) + todayAttendance.status.slice(1).toLowerCase()}
-              </Badge>
-            ) : (
-              <Badge variant="gray">Not marked</Badge>
-            )
-          }
-        >
-          <div className="p-4 flex flex-col gap-3">
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="bg-muted/40 rounded-lg p-3">
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center gap-1">
-                  <LogIn className="w-3 h-3 text-[#0F6E56]" /> Clock in
-                </p>
-                <p className="text-base font-medium">{fmt(todayAttendance?.clockIn ?? null)}</p>
-              </div>
-              <div className="bg-muted/40 rounded-lg p-3">
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center gap-1">
-                  <LogOut className="w-3 h-3 text-[#A32D2D]" /> Clock out
-                </p>
-                <p className={`text-base font-medium ${!todayAttendance?.clockOut ? "text-muted-foreground" : ""}`}>
-                  {fmt(todayAttendance?.clockOut ?? null)}
-                </p>
-              </div>
-            </div>
-            <div className="bg-muted/40 rounded-lg p-3">
-              <div className="flex justify-between items-center mb-2">
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Hours worked</p>
-                <p className="text-xs font-medium">
-                  {dur ?? `${Math.floor(workedMins / 60)}h ${workedMins % 60}m`} / 8h
-                </p>
-              </div>
-              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{ width: `${progressPct}%`, background: "#1D9E75" }}
-                />
-              </div>
-            </div>
-          </div>
-        </SectionCard>
-
-        <SectionCard title="Leave summary" sub="Annual 2026">
-          <div className="p-4 flex flex-col gap-3">
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { label: "Total",     val: 14, bg: "#E1F5EE", color: "#0F6E56" },
-                { label: "Used",      val: 6,  bg: "#E6F1FB", color: "#185FA5" },
-                { label: "Remaining", val: 8,  bg: "#FAEEDA", color: "#854F0B" },
-              ].map(({ label, val, bg, color }) => (
-                <div key={label} className="rounded-lg p-2.5 text-center" style={{ background: bg }}>
-                  <p className="text-lg font-medium" style={{ color }}>{val}</p>
-                  <p className="text-[10px] mt-0.5" style={{ color }}>{label}</p>
+          <div className="p-6 sm:p-8">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+              {/* left – avatar + info */}
+              <div className="flex items-center gap-5">
+                <div className="relative">
+                  <Avatar className="h-20 w-20 ring-4 ring-background shadow-md">
+                    <AvatarImage src={profile.avatarUrl} />
+                    <AvatarFallback className="text-2xl font-bold bg-indigo-100 text-indigo-700">
+                      {profile.firstName.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  {/* online dot */}
+                  <span className="absolute bottom-1 right-1 block h-3.5 w-3.5 rounded-full border-2 border-background bg-emerald-500" />
                 </div>
+
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight">
+                    {profile.firstName} {profile.lastName}
+                  </h1>
+                  <p className="mt-0.5 text-sm text-muted-foreground">{profile.email}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <span className="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                      {profile.role}
+                    </span>
+                    <span
+                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                        profile.status === "ACTIVE"
+                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+                          : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      {profile.status}
+                    </span>
+                    {profile.emailVerified && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-300">
+                        <Eye className="h-3 w-3" />
+                        Verified
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* right – meta pills */}
+              <div className="flex flex-wrap gap-4 sm:flex-col sm:items-end sm:gap-2">
+                <div className="text-right">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+                    Department
+                  </p>
+                  <p className="mt-0.5 font-semibold">
+                    {profile.department?.name || "—"}
+                  </p>
+                </div>
+                {profile.manager && (
+                  <div className="text-right">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+                      Manager
+                    </p>
+                    <p className="mt-0.5 font-semibold">
+                      {profile.manager.firstName} {profile.manager.lastName}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ══ STAT CARDS ══ */}
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            title="Projects"
+            value={stats.totalProjects}
+            icon={<Folder className="h-5 w-5" />}
+          />
+          <StatCard
+            title="Total Tasks"
+            value={stats.totalTasks}
+            icon={<ListTodo className="h-5 w-5" />}
+          />
+          <StatCard
+            title="Pending"
+            value={stats.todoTasks}
+            icon={<Clock3 className="h-5 w-5" />}
+          />
+          <StatCard
+            title="Completed"
+            value={stats.completedTasks}
+            icon={<CheckCircle className="h-5 w-5" />}
+          />
+          <StatCard
+            title="In Progress"
+            value={stats.inProgressTasks}
+            icon={<Loader2 className="h-5 w-5" />}
+          />
+          <StatCard
+            title="In Review"
+            value={stats.reviewTasks}
+            icon={<TrendingUp className="h-5 w-5" />}
+          />
+          <StatCard
+            title="Unread Alerts"
+            value={stats.unreadNotifications}
+            icon={<Bell className="h-5 w-5" />}
+          />
+        </div>
+
+        {/* ══ ATTENDANCE · LEAVE · PAYROLL ══ */}
+        <div className="grid gap-5 lg:grid-cols-3">
+
+          {/* Today's Attendance */}
+          <Card className="rounded-2xl border-border shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40">
+                  <Calendar className="h-4 w-4" />
+                </span>
+                Today's Attendance
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {dashboard.attendance?.today ? (
+                <div className="divide-y divide-border/60">
+                  <InfoRow label="Status">
+                    <PillBadge
+                      label={dashboard.attendance.today.status}
+                      styleMap={{
+                        PRESENT: "bg-emerald-100 text-emerald-700",
+                        ABSENT:  "bg-rose-100 text-rose-700",
+                        LATE:    "bg-amber-100 text-amber-700",
+                      }}
+                    />
+                  </InfoRow>
+                  <InfoRow label="Clock In">
+                    {dashboard.attendance.today.clockIn
+                      ? new Date(dashboard.attendance.today.clockIn).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : "—"}
+                  </InfoRow>
+                  <InfoRow label="Clock Out">
+                    {dashboard.attendance.today.clockOut
+                      ? new Date(dashboard.attendance.today.clockOut).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : "—"}
+                  </InfoRow>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <Calendar className="mb-2 h-8 w-8 text-muted-foreground/40" />
+                  <p className="text-sm text-muted-foreground">No attendance recorded today</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Leave Balance */}
+          <Card className="rounded-2xl border-border shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-100 text-cyan-600 dark:bg-cyan-900/40">
+                  <Clock3 className="h-4 w-4" />
+                </span>
+                Leave Balance
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {leaveTypes.map((lt) => (
+                <LeaveBar key={lt.label} {...lt} />
               ))}
-            </div>
-            <div className="border-t border-border/50 pt-3 flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">Pending requests</p>
-                <Badge variant="amber">2 pending</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">Last approved</p>
-                <p className="text-xs">Jun 12 – 14</p>
-              </div>
-            </div>
-          </div>
-        </SectionCard>
-      </div>
+            </CardContent>
+          </Card>
 
-      {/* ── Projects + Notifications ── */}
-      <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-4">
+          {/* Latest Payroll */}
+          <Card className="rounded-2xl border-border shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40">
+                  <DollarSign className="h-4 w-4" />
+                </span>
+                Latest Payroll
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {dashboard.payroll ? (
+                <div className="divide-y divide-border/60">
+                  <InfoRow label="Period">
+                    {dashboard.payroll.month} / {dashboard.payroll.year}
+                  </InfoRow>
+                  <InfoRow label="Status">
+                    <PillBadge
+                      label={dashboard.payroll.status}
+                      styleMap={{
+                        PAID:    "bg-emerald-100 text-emerald-700",
+                        PENDING: "bg-amber-100 text-amber-700",
+                        DRAFT:   "bg-slate-100 text-slate-600",
+                      }}
+                    />
+                  </InfoRow>
+                  <InfoRow label="Net Salary">
+                    <span className="text-base font-bold text-emerald-600">
+                      ৳{Number(dashboard.payroll.netSalary).toLocaleString()}
+                    </span>
+                  </InfoRow>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <DollarSign className="mb-2 h-8 w-8 text-muted-foreground/40" />
+                  <p className="text-sm text-muted-foreground">No payroll record yet</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-        <SectionCard
-          title="My projects"
-          sub="Assigned to you"
-          badge={<Badge variant="purple">{activeProjects} active</Badge>}
-        >
-          <div className="divide-y">
-            {loading ? (
-              <div className="flex items-center gap-2 px-4 py-6 text-sm text-muted-foreground">
-                <Clock className="w-4 h-4 animate-spin" /> Loading…
+        {/* ══ RECENT TASKS ══ */}
+        <Card className="rounded-2xl border-border shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base font-semibold">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-violet-100 text-violet-600 dark:bg-violet-900/40">
+                <ClipboardList className="h-4 w-4" />
+              </span>
+              Recent Tasks
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {dashboard.tasks?.recent?.length > 0 ? (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/40 hover:bg-muted/40">
+                      <TableHead className="pl-6 font-semibold">Task</TableHead>
+                      <TableHead className="font-semibold">Project</TableHead>
+                      <TableHead className="font-semibold">Status</TableHead>
+                      <TableHead className="font-semibold">Priority</TableHead>
+                      <TableHead className="pr-6 font-semibold">Due Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {dashboard.tasks.recent.map((task: any) => (
+                      <TableRow
+                        key={task.id}
+                        className="group transition-colors hover:bg-muted/30"
+                      >
+                        <TableCell className="pl-6 font-medium">{task.title}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {task.project?.title ?? "—"}
+                        </TableCell>
+                        <TableCell>
+                          <PillBadge label={task.status} styleMap={statusStyles} />
+                        </TableCell>
+                        <TableCell>
+                          <PillBadge label={task.priority} styleMap={priorityStyles} />
+                        </TableCell>
+                        <TableCell className="pr-6 text-muted-foreground">
+                          {task.dueDate
+                            ? new Date(task.dueDate).toLocaleDateString(undefined, {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              })
+                            : "—"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
-            ) : projects.length === 0 ? (
-              <p className="px-4 py-6 text-sm text-muted-foreground">No projects assigned.</p>
             ) : (
-              projects.map((p) => (
-                <div key={p.id} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/20 transition-colors">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{p.name}</p>
-                    <div className="h-1 bg-muted rounded-full overflow-hidden mt-1.5">
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${p.progress ?? 0}%`,
-                          background: STATUS_FILL[p.status] ?? "#888780",
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                    <Badge variant={STATUS_BADGE[p.status] ?? "gray"}>
-                      {STATUS_LABEL[p.status] ?? p.status}
-                    </Badge>
-                    <p className="text-[10px] text-muted-foreground">{p.progress ?? 0}%</p>
-                  </div>
-                </div>
-              ))
+              <div className="flex flex-col items-center justify-center py-14 text-center">
+                <ClipboardList className="mb-2 h-10 w-10 text-muted-foreground/30" />
+                <p className="text-sm text-muted-foreground">No recent tasks assigned</p>
+              </div>
             )}
-          </div>
-        </SectionCard>
-
-        <SectionCard
-          title="Notifications"
-          sub="Recent updates"
-          badge={unreadCount > 0 ? <Badge variant="red">{unreadCount} unread</Badge> : undefined}
-        >
-          <div className="divide-y">
-            {loading ? (
-              <div className="flex items-center gap-2 px-4 py-6 text-sm text-muted-foreground">
-                <Clock className="w-4 h-4 animate-spin" /> Loading…
-              </div>
-            ) : notifications.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 px-4 py-8 text-muted-foreground">
-                <Bell className="w-8 h-8" />
-                <p className="text-sm">No notifications</p>
-              </div>
-            ) : (
-              notifications.map((n) => (
-                <div key={n.id} className="flex items-start gap-2.5 px-4 py-3 hover:bg-muted/20 transition-colors">
-                  <span
-                    className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
-                    style={{ background: n.isRead ? "#B4B2A9" : "#E24B4A" }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-xs ${n.isRead ? "text-muted-foreground" : "font-medium"} truncate`}>
-                      {n.title}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
-                      {timeAgo(n.createdAt)}
-                    </p>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </SectionCard>
-      </div>
-
-      {/* ── Tasks + Profile ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-        <SectionCard
-          title="My tasks"
-          sub="Due this week"
-          badge={<Badge variant="amber">5 pending</Badge>}
-        >
-          <div className="divide-y">
-            {[
-              { title: "Fix login redirect bug",      project: "SOM Frontend", due: "Jun 25", done: false, priority: "high"   },
-              { title: "Write API documentation",     project: "Leave API",    due: "Jun 26", done: false, priority: "medium" },
-              { title: "Update dashboard layout",     project: "SOM Frontend", due: "Done",   done: true,  priority: "done"   },
-              { title: "Review payroll integration",  project: "Payroll",      due: "Jun 27", done: false, priority: "medium" },
-            ].map((task, i) => (
-              <div key={i} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/20 transition-colors">
-                {task.done
-                  ? <CheckCircle2 className="w-4 h-4 text-[#1D9E75] flex-shrink-0" />
-                  : <Circle className="w-4 h-4 text-[#EF9F27] flex-shrink-0" />
-                }
-                <div className="flex-1 min-w-0">
-                  <p className={`text-xs font-medium truncate ${task.done ? "line-through text-muted-foreground" : ""}`}>
-                    {task.title}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                    {task.project} · {task.due}
-                  </p>
-                </div>
-                <Badge
-                  variant={task.priority === "high" ? "red" : task.priority === "done" ? "green" : "amber"}
-                >
-                  {task.priority === "high" ? "High" : task.priority === "done" ? "Done" : "Med"}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </SectionCard>
-
-        <SectionCard title="Profile snapshot" sub="Your information">
-          <div className="p-4 flex flex-col gap-3">
-            <div className="flex items-center gap-3 pb-3 border-b border-border/50">
-              <div className="w-11 h-11 rounded-full bg-[#CECBF6] text-[#534AB7] flex items-center justify-center text-sm font-medium flex-shrink-0">
-                RH
-              </div>
-              <div>
-                <p className="text-sm font-medium">Rahim Hossain</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">EMP-00124 · Full-time</p>
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <InfoRow icon={Mail}      label="Email"      value="rahim@company.com"   />
-              <InfoRow icon={Building2} label="Department" value="Engineering"          />
-              <InfoRow icon={MapPin}    label="Location"   value="Dhaka, BD"            />
-              <InfoRow icon={Calendar}  label="Joined"     value="Mar 15, 2023"         />
-              <InfoRow icon={Phone}     label="Phone"      value="+880 1700-000000"     />
-            </div>
-          </div>
-        </SectionCard>
+          </CardContent>
+        </Card>
 
       </div>
     </div>
