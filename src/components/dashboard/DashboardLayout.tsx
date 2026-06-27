@@ -9,12 +9,14 @@ interface Props {
   children: React.ReactNode;
   role: string;
   userName: string;
+  avatarUrl?: string;
 }
 
 export default function DashboardLayout({
   children,
   role,
   userName,
+  avatarUrl
 }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -59,12 +61,11 @@ export default function DashboardLayout({
           onMenuClick={() => setOpen(true)}
           name={userName}
           role={role}
+           avatarUrl={avatarUrl}
         />
-
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto ">
           {children}
         </main>
-
       </div>
     </div>
   );
