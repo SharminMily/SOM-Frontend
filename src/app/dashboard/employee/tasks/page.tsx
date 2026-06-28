@@ -283,14 +283,14 @@ function TaskCard({
 
         <div className="flex gap-2">
           <Link href={`/dashboard/employee/tasks/${task.id}`}>
-  <Button size="sm" variant="outline">
+  <Button size="sm" >
     View
   </Button>
 </Link>
 
-          <Button size="sm">
+          {/* <Button size="sm">
             Update
-          </Button>
+          </Button> */}
         </div>
       </CardContent>
     </Card>

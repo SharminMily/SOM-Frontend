@@ -110,15 +110,24 @@ export default function AttendancePage() {
 
       const data = res?.data ?? [];
 
-      setHistory(data);
+      // Sort newest-first so the table always reads top-to-bottom = most recent first,
+      // regardless of what order the API returns rows in.
+      const sorted = [...data].sort(
+        (a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
 
-      // latest record
-      const latestRecord = data.length > 0 ? data[0] : null;
+      setHistory(sorted);
 
-      setToday(latestRecord);
+      // BUG FIX: previously this just grabbed data[0] and assumed it was "today".
+      // That only works if the API happens to return today's row first. Instead,
+      // explicitly match on today's date so `today` is always correct (or null
+      // if there's genuinely no record yet).
+      const todayStr = now.toDateString();
+      const todaysRecord =
+        sorted.find((r: any) => new Date(r.date).toDateString() === todayStr) ??
+        null;
 
-      console.log("ATTENDANCE DATA:", data);
-      console.log("TODAY:", latestRecord);
+      setToday(todaysRecord);
     } catch (error) {
       console.error(error);
       toast.error("Failed to load attendance");
@@ -128,8 +137,8 @@ export default function AttendancePage() {
   };
 
   useEffect(() => {
-  console.log("TODAY STATE:", today);
-}, [today]);
+    loadData();
+  }, []);
 
   const handleClockIn = async () => {
     try {
@@ -138,34 +147,25 @@ export default function AttendancePage() {
       toast.success("Clocked in successfully");
       await loadData();
     } catch (err: any) {
-      toast.error(err.response?.data?.message ?? "Failed to clock in");
+      toast.error(err?.response?.data?.message ?? "Failed to clock in");
     } finally {
       setClockLoading(false);
     }
   };
 
-const handleClockOut = async () => {
-  try {
-    setClockLoading(true);
-
-    const res = await attendanceApi.clockOut();
-
-    console.log("CLOCK OUT RESPONSE:", res);
-
-    toast.success("Clocked out successfully");
-
-    await loadData();
-  } catch (err: any) {
-    console.error(err);
-
-    toast.error(
-      err?.response?.data?.message ||
-      "Failed to clock out"
-    );
-  } finally {
-    setClockLoading(false);
-  }
-};
+  const handleClockOut = async () => {
+    try {
+      setClockLoading(true);
+      await attendanceApi.clockOut();
+      toast.success("Clocked out successfully");
+      await loadData();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.response?.data?.message ?? "Failed to clock out");
+    } finally {
+      setClockLoading(false);
+    }
+  };
 
   const present = history.filter((r) => r.status === "PRESENT").length;
   const late = history.filter((r) => r.status === "LATE").length;
@@ -173,6 +173,16 @@ const handleClockOut = async () => {
 
   const now = new Date();
   const monthLabel = now.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+
+  // Derived booleans so the JSX below stays readable.
+  const hasClockedIn = !!today?.clockIn;
+  const hasClockedOut = !!today?.clockOut;
+  const canClockIn = !hasClockedIn; // can only clock in if not already clocked in today
+  const canClockOut = hasClockedIn && !hasClockedOut; // can only clock out after clocking in, and only once
+
+  // TEMP DEBUG — remove once the disabled-button cause is confirmed.
+  console.log("DEBUG today:", today);
+  console.log("DEBUG hasClockedIn:", hasClockedIn, "hasClockedOut:", hasClockedOut, "clockLoading:", clockLoading, "canClockOut:", canClockOut);
 
   return (
     <div className="min-h-screen bg-muted/30 p-6 space-y-6">
@@ -189,16 +199,23 @@ const handleClockOut = async () => {
           <Button
             size="sm"
             onClick={handleClockIn}
-            disabled={
-              clockLoading ||
-              (today &&
-                !today.clockOut &&
-                !!today.clockIn)
-            }
+            disabled={clockLoading || !canClockIn}
             className="gap-1.5"
           >
             <LogIn className="w-4 h-4" />
             Clock In
+          </Button>
+
+          {/* This button was missing entirely — handleClockOut had no way to be triggered. */}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleClockOut}
+            disabled={clockLoading || !canClockOut}
+            className="gap-1.5"
+          >
+            <LogOut className="w-4 h-4" />
+            Clock Out
           </Button>
         </div>
       </div>
@@ -274,34 +291,14 @@ const handleClockOut = async () => {
 
                   {/* STATUS */}
                   <div>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full border
-                  ${item.status === "PRESENT"
-                          ? "bg-green-50 text-green-600 border-green-200"
-                          : item.status === "LATE"
-                            ? "bg-yellow-50 text-yellow-600 border-yellow-200"
-                            : "bg-red-50 text-red-600 border-red-200"
-                        }`}
-                    >
-                      {item.status}
-                    </span>
+                    <StatusBadge status={item.status} />
                   </div>
 
                   {/* TIME */}
                   <div className="text-sm md:text-right text-muted-foreground">
-                    {item.clockIn
-                      ? new Date(item.clockIn).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                      : "--"}
+                    {item.clockIn ? fmt(item.clockIn) : "--"}
                     {" → "}
-                    {item.clockOut
-                      ? new Date(item.clockOut).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                      : "--"}
+                    {item.clockOut ? fmt(item.clockOut) : "--"}
                   </div>
 
                 </div>
