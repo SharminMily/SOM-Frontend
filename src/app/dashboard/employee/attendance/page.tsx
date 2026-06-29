@@ -7,14 +7,11 @@ import { attendanceApi } from "@/lib/api/attendance.api";
 import { toast } from "sonner";
 import {
   LogIn,
-  LogOut,
-  Calendar,
-  Clock,
+  LogOut, 
   CheckCircle2,
   AlertCircle,
   XCircle,
-  ChevronLeft,
-  ChevronRight,
+ 
 } from "lucide-react";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
