@@ -1,311 +1,322 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect, useCallback } from "react";
+import { Clock, LogIn, LogOut, CalendarDays, ChevronLeft, ChevronRight, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { attendanceApi } from "@/lib/api/attendance.api";
-import { toast } from "sonner";
-import {
-  LogIn,
-  LogOut, 
-  CheckCircle2,
-  AlertCircle,
-  XCircle,
- 
-} from "lucide-react";
 
-// ─── helpers ────────────────────────────────────────────────────────────────
 
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+type AttendanceStatus = "PRESENT" | "LATE" | "ABSENT";
 
-function calcDuration(clockIn: string | null, clockOut: string | null) {
-  if (!clockIn || !clockOut) return null;
-  const a = new Date(clockIn), b = new Date(clockOut);
-  const mins = Math.round((b.getTime() - a.getTime()) / 60000);
-  return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+interface AttendanceRecord {
+  id?: string;
+  date?: string;
+  clockIn?: string;
+  clockOut?: string;
+  status: AttendanceStatus;
+  note?: string;
 }
 
-function fmt(iso: string | null) {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+interface ToastState {
+  message: string;
+  kind: "success" | "error";
 }
 
-const STATUS_MAP = {
-  PRESENT: {
-    label: "Present",
-    icon: CheckCircle2,
-    badge: "bg-[#E1F5EE] text-[#0F6E56] border-[#5DCAA5]",
-    dot: "bg-[#1D9E75]",
-  },
-  LATE: {
-    label: "Late",
-    icon: AlertCircle,
-    badge: "bg-[#FAEEDA] text-[#854F0B] border-[#EF9F27]",
-    dot: "bg-[#BA7517]",
-  },
-  ABSENT: {
-    label: "Absent",
-    icon: XCircle,
-    badge: "bg-[#FCEBEB] text-[#A32D2D] border-[#F09595]",
-    dot: "bg-[#E24B4A]",
-  },
-} as const;
+const STATUS_STYLES: Record<AttendanceStatus, { label: string; icon: typeof CheckCircle2; classes: string }> = {
+  PRESENT: { label: "Present", icon: CheckCircle2, classes: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  LATE: { label: "Late", icon: AlertCircle, classes: "bg-amber-50 text-amber-700 border-amber-200" },
+  ABSENT: { label: "Absent", icon: XCircle, classes: "bg-rose-50 text-rose-700 border-rose-200" },
+};
 
-type Status = keyof typeof STATUS_MAP;
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
 
-// ─── sub-components ──────────────────────────────────────────────────────────
-
-function StatusBadge({ status }: { status: string }) {
-  const cfg = STATUS_MAP[status as Status] ?? STATUS_MAP.ABSENT;
+function StatusBadge({ status }: { status: AttendanceStatus }) {
+  const cfg = STATUS_STYLES[status] || STATUS_STYLES.ABSENT;
+  const Icon = cfg.icon;
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-full border ${cfg.badge}`}
-    >
-      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${cfg.classes}`}>
+      <Icon size={13} />
       {cfg.label}
     </span>
   );
 }
 
-function StatCard({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Card className="rounded-xl border shadow-none">
-      <CardContent className="p-4">
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
-          {label}
-        </p>
-        {children}
-      </CardContent>
-    </Card>
-  );
+function formatTime(value?: string): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-// ─── main page ───────────────────────────────────────────────────────────────
+function formatDate(value?: string): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return value;
+  return d.toLocaleDateString([], { weekday: "short", day: "2-digit", month: "short" });
+}
 
-export default function AttendancePage() {
-  const [today, setToday] = useState<any>(null);
-  const [history, setHistory] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [clockLoading, setClockLoading] = useState(false);
+function buildMonthRecords(
+  records: AttendanceRecord[],
+  month: number,
+  year: number
+): AttendanceRecord[] {
+  const byDate = new Map<string, AttendanceRecord>();
+  records.forEach((r) => {
+    const key = new Date(r.date || r.clockIn || "").toDateString();
+    byDate.set(key, r);
+  });
 
-  const loadData = async () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const result: AttendanceRecord[] = [];
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month - 1, day);
+    if (date > today) break; // don't mark future days as absent
+
+    const key = date.toDateString();
+    const existing = byDate.get(key);
+    if (existing) {
+      result.push(existing);
+    } else {
+      result.push({ date: date.toISOString(), status: "ABSENT" });
+    }
+  }
+
+  return result.reverse(); // newest first
+}
+
+export default function EmployeeAttendancePage() {
+  const today = new Date();
+  const [month, setMonth] = useState<number>(today.getMonth() + 1);
+  const [year, setYear] = useState<number>(today.getFullYear());
+
+  const [records, setRecords] = useState<AttendanceRecord[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [clockedIn, setClockedIn] = useState<boolean>(false);
+  const [busy, setBusy] = useState<boolean>(false);
+  const [note, setNote] = useState<string>("");
+  const [toast, setToast] = useState<ToastState | null>(null);
+
+  const loadAttendance = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
+      const res = await attendanceApi.getMyAttendance(month, year);
+      const raw: AttendanceRecord[] = Array.isArray(res) ? res : res?.data ?? [];
+      const list = buildMonthRecords(raw, month, year);
+      setRecords(list);
 
-      const now = new Date();
-
-      const res = await attendanceApi.getMyAttendance(
-        now.getMonth() + 1,
-        now.getFullYear()
+      const todayStr = new Date().toDateString();
+      const todaysRecord = list.find(
+        (r) => new Date(r.date || r.clockIn || "").toDateString() === todayStr
       );
-
-      const data = res?.data ?? [];
-
-      // Sort newest-first so the table always reads top-to-bottom = most recent first,
-      // regardless of what order the API returns rows in.
-      const sorted = [...data].sort(
-        (a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
-
-      setHistory(sorted);
-
-      // BUG FIX: previously this just grabbed data[0] and assumed it was "today".
-      // That only works if the API happens to return today's row first. Instead,
-      // explicitly match on today's date so `today` is always correct (or null
-      // if there's genuinely no record yet).
-      const todayStr = now.toDateString();
-      const todaysRecord =
-        sorted.find((r: any) => new Date(r.date).toDateString() === todayStr) ??
-        null;
-
-      setToday(todaysRecord);
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to load attendance");
+      setClockedIn(Boolean(todaysRecord?.clockIn && !todaysRecord?.clockOut));
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Couldn't load your attendance. Try again.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [month, year]);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    loadAttendance();
+  }, [loadAttendance]);
 
-  const handleClockIn = async () => {
+  function showToast(message: string, kind: ToastState["kind"] = "success") {
+    setToast({ message, kind });
+    setTimeout(() => setToast(null), 3000);
+  }
+
+  async function handleClockIn() {
+    setBusy(true);
     try {
-      setClockLoading(true);
-      await attendanceApi.clockIn({});
-      toast.success("Clocked in successfully");
-      await loadData();
+      const trimmedNote = note.trim();
+      await attendanceApi.clockIn(trimmedNote ? { note: trimmedNote } : {});
+      setNote("");
+      showToast("Clocked in. Have a good shift.");
+      await loadAttendance();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "Failed to clock in");
+      showToast(err?.response?.data?.message || "Couldn't clock in.", "error");
     } finally {
-      setClockLoading(false);
+      setBusy(false);
     }
-  };
+  }
 
-  const handleClockOut = async () => {
+  async function handleClockOut() {
+    setBusy(true);
     try {
-      setClockLoading(true);
       await attendanceApi.clockOut();
-      toast.success("Clocked out successfully");
-      await loadData();
+      showToast("Clocked out. See you next time.");
+      await loadAttendance();
     } catch (err: any) {
-      console.error(err);
-      toast.error(err?.response?.data?.message ?? "Failed to clock out");
+      showToast(err?.response?.data?.message || "Couldn't clock out.", "error");
     } finally {
-      setClockLoading(false);
+      setBusy(false);
     }
-  };
+  }
 
-  const present = history.filter((r) => r.status === "PRESENT").length;
-  const late = history.filter((r) => r.status === "LATE").length;
-  const absent = history.filter((r) => r.status === "ABSENT").length;
+  function shiftMonth(delta: number) {
+    let m = month + delta;
+    let y = year;
+    if (m < 1) { m = 12; y -= 1; }
+    if (m > 12) { m = 1; y += 1; }
+    setMonth(m);
+    setYear(y);
+  }
 
-  const now = new Date();
-  const monthLabel = now.toLocaleDateString(undefined, { month: "long", year: "numeric" });
-
-  // Derived booleans so the JSX below stays readable.
-  const hasClockedIn = !!today?.clockIn;
-  const hasClockedOut = !!today?.clockOut;
-  const canClockIn = !hasClockedIn; // can only clock in if not already clocked in today
-  const canClockOut = hasClockedIn && !hasClockedOut; // can only clock out after clocking in, and only once
-
-  // TEMP DEBUG — remove once the disabled-button cause is confirmed.
-  console.log("DEBUG today:", today);
-  console.log("DEBUG hasClockedIn:", hasClockedIn, "hasClockedOut:", hasClockedOut, "clockLoading:", clockLoading, "canClockOut:", canClockOut);
+  const presentCount = records.filter((r) => r.status === "PRESENT").length;
+  const lateCount = records.filter((r) => r.status === "LATE").length;
+  const absentCount = records.filter((r) => r.status === "ABSENT").length;
 
   return (
-    <div className="min-h-screen bg-muted/30 p-6 space-y-6">
-
-      {/* ── Page header ── */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-medium">Attendance</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Track your daily working activity
-          </p>
+    <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-8">
+      <div className="mx-auto max-w-4xl">
+        {/* Header */}
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900">Attendance</h1>
+            <p className="mt-1 text-sm text-slate-500">Track your clock-ins and view your monthly record.</p>
+          </div>
+          <div className="hidden rounded-full bg-white p-3 shadow-sm ring-1 ring-slate-200 sm:block">
+            <Clock className="text-slate-400" size={22} />
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            onClick={handleClockIn}
-            disabled={clockLoading || !canClockIn}
-            className="gap-1.5"
-          >
-            <LogIn className="w-4 h-4" />
-            Clock In
-          </Button>
 
-          {/* This button was missing entirely — handleClockOut had no way to be triggered. */}
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleClockOut}
-            disabled={clockLoading || !canClockOut}
-            className="gap-1.5"
-          >
-            <LogOut className="w-4 h-4" />
-            Clock Out
-          </Button>
+        {/* Clock in/out card */}
+        <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className={`h-2.5 w-2.5 rounded-full ${clockedIn ? "bg-emerald-500" : "bg-slate-300"}`} />
+                <span className="text-sm font-medium text-slate-700">
+                  {clockedIn ? "You're clocked in" : "You're clocked out"}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-slate-400">
+                {today.toLocaleDateString([], { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+              </p>
+            </div>
+
+            <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+              {!clockedIn && (
+                <input
+                  type="text"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Add a note (optional)"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200 sm:w-56"
+                />
+              )}
+              <button
+                onClick={handleClockIn}
+                disabled={busy || clockedIn}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <LogIn size={16} />
+                {busy ? "Clocking in…" : "Clock in"}
+              </button>
+              <button
+                onClick={handleClockOut}
+                disabled={busy || !clockedIn}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <LogOut size={16} />
+                {busy ? "Clocking out…" : "Clock out"}
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* ── Today's stats ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard label="Today's status">
-          {today?.status ? (
-            <StatusBadge status={today.status} />
+        {/* Stats */}
+        <div className="mb-6 grid grid-cols-3 gap-3">
+          <div className="rounded-xl bg-white p-4 text-center shadow-sm ring-1 ring-slate-200">
+            <p className="text-xl font-semibold text-emerald-600">{presentCount}</p>
+            <p className="text-xs text-slate-500">Present</p>
+          </div>
+          <div className="rounded-xl bg-white p-4 text-center shadow-sm ring-1 ring-slate-200">
+            <p className="text-xl font-semibold text-amber-600">{lateCount}</p>
+            <p className="text-xs text-slate-500">Late</p>
+          </div>
+          <div className="rounded-xl bg-white p-4 text-center shadow-sm ring-1 ring-slate-200">
+            <p className="text-xl font-semibold text-rose-600">{absentCount}</p>
+            <p className="text-xs text-slate-500">Absent</p>
+          </div>
+        </div>
+
+        {/* Month navigation */}
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-slate-700">
+            <CalendarDays size={18} className="text-slate-400" />
+            <span className="text-sm font-medium">{MONTH_NAMES[month - 1]} {year}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => shiftMonth(-1)}
+              className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100"
+              aria-label="Previous month"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              onClick={() => shiftMonth(1)}
+              className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100"
+              aria-label="Next month"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+        </div>
+
+        {/* Records table */}
+        <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+          {loading ? (
+            <div className="p-10 text-center text-sm text-slate-400">Loading your attendance…</div>
+          ) : error ? (
+            <div className="p-10 text-center text-sm text-rose-500">{error}</div>
+          ) : records.length === 0 ? (
+            <div className="p-10 text-center text-sm text-slate-400">No attendance records for this month yet.</div>
           ) : (
-            <span className="text-sm text-muted-foreground">Not marked</span>
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-400">
+                  <th className="px-5 py-3 font-medium">Date</th>
+                  <th className="px-5 py-3 font-medium">Clock in</th>
+                  <th className="px-5 py-3 font-medium">Clock out</th>
+                  <th className="px-5 py-3 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {records.map((r, i) => (
+                  <tr key={r.id || i} className="border-b border-slate-50 last:border-0">
+                    <td className="px-5 py-3 text-slate-700">{formatDate(r.date || r.clockIn)}</td>
+                    <td className="px-5 py-3 text-slate-500">{formatTime(r.clockIn)}</td>
+                    <td className="px-5 py-3 text-slate-500">{formatTime(r.clockOut)}</td>
+                    <td className="px-5 py-3"><StatusBadge status={r.status} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
-        </StatCard>
-
-        <StatCard label="Clock in">
-          <p className="text-lg font-medium">{fmt(today?.clockIn ?? null)}</p>
-        </StatCard>
-
-        <StatCard label="Clock out">
-          <p className={`text-lg font-medium ${!today?.clockOut ? "text-muted-foreground" : ""}`}>
-            {fmt(today?.clockOut ?? null)}
-          </p>
-        </StatCard>
-
-        <StatCard label="Working hours">
-          <p className={`text-lg font-medium ${!today?.clockIn ? "text-muted-foreground" : ""}`}>
-            {calcDuration(today?.clockIn, today?.clockOut) ?? "—"}
-          </p>
-        </StatCard>
+        </div>
       </div>
 
-      {/* ── Monthly history ── */}
-      <Card className="rounded-xl border">
-        <CardContent className="p-0">
-
-          {/* HEADER */}
-          <div className="px-4 md:px-6 py-4 border-b">
-            <h2 className="text-base font-semibold">Monthly Attendance</h2>
-            <p className="text-xs text-muted-foreground">
-              Your check-in history for this month
-            </p>
-          </div>
-
-          {/* TABLE HEADER (desktop only) */}
-          <div className="hidden md:grid grid-cols-3 px-6 py-3 text-xs font-medium text-muted-foreground border-b">
-            <div>Date</div>
-            <div>Status</div>
-            <div className="text-right">Time</div>
-          </div>
-
-          {/* ROWS */}
-          <div className="divide-y">
-
-            {loading ? (
-              <div className="p-6 text-sm text-muted-foreground">
-                Loading...
-              </div>
-            ) : history.length === 0 ? (
-              <div className="p-6 text-sm text-muted-foreground">
-                No records found
-              </div>
-            ) : (
-              history.map((item: any) => (
-                <div
-                  key={item.id}
-                  className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-0 px-4 md:px-6 py-4"
-                >
-
-                  {/* DATE */}
-                  <div className="text-sm font-medium">
-                    {new Date(item.date).toLocaleDateString()}
-                  </div>
-
-                  {/* STATUS */}
-                  <div>
-                    <StatusBadge status={item.status} />
-                  </div>
-
-                  {/* TIME */}
-                  <div className="text-sm md:text-right text-muted-foreground">
-                    {item.clockIn ? fmt(item.clockIn) : "--"}
-                    {" → "}
-                    {item.clockOut ? fmt(item.clockOut) : "--"}
-                  </div>
-
-                </div>
-              ))
-            )}
-
-          </div>
-
-        </CardContent>
-      </Card>
+      {/* Toast */}
+      {toast && (
+        <div
+          className={`fixed bottom-6 left-1/2 -translate-x-1/2 rounded-lg px-4 py-2.5 text-sm font-medium text-white shadow-lg ${
+            toast.kind === "error" ? "bg-rose-600" : "bg-slate-900"
+          }`}
+        >
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

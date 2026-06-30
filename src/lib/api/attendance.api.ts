@@ -2,8 +2,7 @@ import api from "./axios";
 export const attendanceApi = {
   // Employee
   clockIn: (payload?: { note?: string }) =>
-    api.post("/attendance/clock-in", payload).then((r) => r.data),
-
+    api.post("/attendance/clock-in", payload ?? {}).then((r) => r.data),
   clockOut: () =>
     api.patch("/attendance/clock-out").then((r) => r.data),
 
