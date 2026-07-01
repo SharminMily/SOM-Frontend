@@ -16,7 +16,7 @@ console.log("Dashboard Layout User:", user);
   return (
     <DashboardLayout
       role={user.role}
-      userName={user.name}
+     userName={`${user.firstName} ${user.lastName}`}
     >
       {children}
     </DashboardLayout>

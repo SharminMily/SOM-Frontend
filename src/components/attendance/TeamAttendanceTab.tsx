@@ -20,11 +20,14 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { useAuthStore } from "@/lib/store/auth.store";
+import { AxiosError } from "axios";
+import { toast } from "sonner";
 
 
 
 export default function TeamAttendanceTab() {
   const { user } = useAuthStore();
+  const [loading, setLoading] = useState(false);
 
   const [records, setRecords] = useState([]);
   const [stats, setStats] = useState({
@@ -34,26 +37,35 @@ export default function TeamAttendanceTab() {
     absent: 0,
   });
 
-  const loadData = async () => {
-    if (!user?.departmentId) return;
+ const loadData = async () => {
+  if (!user?.departmentId) return;
 
-    try {
-      const attendanceRes =
-        await attendanceApi.getDepartmentAttendance(
-          user.departmentId
-        );
+  try {
+    setLoading(true);
 
-      const statsRes =
-        await attendanceApi.getAttendanceStats(
-          user.departmentId
-        );
+    const attendanceRes =
+      await attendanceApi.getDepartmentAttendance(
+        user.departmentId
+      );
 
-      setRecords(attendanceRes.data);
-      setStats(statsRes.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+    const statsRes =
+      await attendanceApi.getAttendanceStats(
+        user.departmentId
+      );
+
+    setRecords(attendanceRes.data || []);
+    setStats(statsRes.data);
+  } catch (err) {
+    const error = err as AxiosError<any>;
+
+    toast.error(
+      error.response?.data?.message ||
+        "Failed to load attendance"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     loadData();
@@ -117,48 +129,74 @@ export default function TeamAttendanceTab() {
               </TableRow>
             </TableHeader>
 
-            <TableBody>
+           <TableBody>
 
-              {records.map((item: any) => (
-                <TableRow key={item.id}>
+  {loading ? (
+    <TableRow>
+      <TableCell
+        colSpan={5}
+        className="text-center py-6"
+      >
+        Loading...
+      </TableCell>
+    </TableRow>
+  ) : records.length === 0 ? (
+    <TableRow>
+      <TableCell
+        colSpan={5}
+        className="text-center py-6"
+      >
+        No attendance records found
+      </TableCell>
+    </TableRow>
+  ) : (
+    records.map((item: any) => (
+      <TableRow key={item.id}>
 
-                  <TableCell>
-                    {item.user.firstName}{" "}
-                    {item.user.lastName}
-                  </TableCell>
+        <TableCell>
+          {item.user.firstName}{" "}
+          {item.user.lastName}
+        </TableCell>
 
-                  <TableCell>
-                    {new Date(
-                      item.date
-                    ).toLocaleDateString()}
-                  </TableCell>
+        <TableCell>
+          {new Date(item.date).toLocaleDateString()}
+        </TableCell>
 
-                  <TableCell>
-                    <Badge>
-                      {item.status}
-                    </Badge>
-                  </TableCell>
+        <TableCell>
+          <Badge
+            variant={
+              item.status === "PRESENT"
+                ? "default"
+                : item.status === "LATE"
+                ? "secondary"
+                : "destructive"
+            }
+          >
+            {item.status}
+          </Badge>
+        </TableCell>
 
-                  <TableCell>
-                    {item.clockIn
-                      ? new Date(
-                          item.clockIn
-                        ).toLocaleTimeString()
-                      : "-"}
-                  </TableCell>
+        <TableCell>
+          {item.clockIn
+            ? new Date(
+                item.clockIn
+              ).toLocaleTimeString()
+            : "-"}
+        </TableCell>
 
-                  <TableCell>
-                    {item.clockOut
-                      ? new Date(
-                          item.clockOut
-                        ).toLocaleTimeString()
-                      : "-"}
-                  </TableCell>
+        <TableCell>
+          {item.clockOut
+            ? new Date(
+                item.clockOut
+              ).toLocaleTimeString()
+            : "-"}
+        </TableCell>
 
-                </TableRow>
-              ))}
+      </TableRow>
+    ))
+  )}
 
-            </TableBody>
+</TableBody>
 
           </Table>
 

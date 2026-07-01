@@ -14,6 +14,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
+import { Badge } from "../ui/badge";
 
 type AttendanceRecord = {
   id: string;
@@ -30,10 +33,17 @@ export default function MyAttendanceTab() {
   const loadData = async () => {
     try {
       setLoading(true);
+
       const res = await attendanceApi.getMyAttendance();
+
       setRecords(res.data || []);
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      const error = err as AxiosError<any>;
+
+      toast.error(
+        error.response?.data?.message ||
+        "Failed to load attendance"
+      );
     } finally {
       setLoading(false);
     }
@@ -42,18 +52,32 @@ export default function MyAttendanceTab() {
   const handleClockIn = async () => {
     try {
       await attendanceApi.clockIn({});
+
+      toast.success("Clock In successful");
+
       loadData();
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      const error = err as AxiosError<any>;
+
+      toast.error(
+        error.response?.data?.message || "Clock In failed"
+      );
     }
   };
 
   const handleClockOut = async () => {
     try {
       await attendanceApi.clockOut();
+
+      toast.success("Clock Out successful");
+
       loadData();
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      const error = err as AxiosError<any>;
+
+      toast.error(
+        error.response?.data?.message || "Clock Out failed"
+      );
     }
   };
 
@@ -106,58 +130,67 @@ export default function MyAttendanceTab() {
 
 
 
-<div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-4">
 
-  <Card className="rounded-3xl">
-    <CardContent className="p-6">
-      <p className="text-muted-foreground">Present</p>
-      <h2 className="text-3xl font-bold text-green-500">
-        {stats?.present ?? 0}
-      </h2>
-    </CardContent>
-  </Card>
+        <Card className="rounded-3xl">
+          <CardContent className="p-6">
+            <p className="text-muted-foreground">Present</p>
+            <h2 className="text-3xl font-bold text-green-500">
+              {stats?.present ?? 0}
+            </h2>
+          </CardContent>
+        </Card>
 
-  <Card className="rounded-3xl">
-    <CardContent className="p-6">
-      <p className="text-muted-foreground">Late</p>
-      <h2 className="text-3xl font-bold text-yellow-500">
-        {stats?.late ?? 0}
-      </h2>
-    </CardContent>
-  </Card>
+        <Card className="rounded-3xl">
+          <CardContent className="p-6">
+            <p className="text-muted-foreground">Late</p>
+            <h2 className="text-3xl font-bold text-yellow-500">
+              {stats?.late ?? 0}
+            </h2>
+          </CardContent>
+        </Card>
 
-  <Card className="rounded-3xl">
-    <CardContent className="p-6">
-      <p className="text-muted-foreground">Absent</p>
-      <h2 className="text-3xl font-bold text-red-500">
-        {stats?.absent ?? 0}
-      </h2>
-    </CardContent>
-  </Card>
+        <Card className="rounded-3xl">
+          <CardContent className="p-6">
+            <p className="text-muted-foreground">Absent</p>
+            <h2 className="text-3xl font-bold text-red-500">
+              {stats?.absent ?? 0}
+            </h2>
+          </CardContent>
+        </Card>
 
-  <Card className="rounded-3xl">
-    <CardContent className="p-6">
-      <p className="text-muted-foreground">Total</p>
-      <h2 className="text-3xl font-bold text-blue-500">
-        {(stats?.present ?? 0) +
-          (stats?.late ?? 0) +
-          (stats?.absent ?? 0)}
-      </h2>
-    </CardContent>
-  </Card>
+        <Card className="rounded-3xl">
+          <CardContent className="p-6">
+            <p className="text-muted-foreground">Total</p>
+            <h2 className="text-3xl font-bold text-blue-500">
+              {(stats?.present ?? 0) +
+                (stats?.late ?? 0) +
+                (stats?.absent ?? 0)}
+            </h2>
+          </CardContent>
+        </Card>
 
-</div>
+      </div>
 
 
 
       {/* ACTIONS */}
       <div className="flex gap-4">
-        <Button size="lg" onClick={handleClockIn}>
-          Clock In
+        <Button
+          size="lg"
+          onClick={handleClockIn}
+          disabled={loading}
+        >
+          {loading ? "Loading..." : "Clock In"}
         </Button>
 
-        <Button size="lg" variant="outline" onClick={handleClockOut}>
-          Clock Out
+        <Button
+          size="lg"
+          variant="outline"
+          onClick={handleClockOut}
+          disabled={loading}
+        >
+          {loading ? "Loading..." : "Clock Out"}
         </Button>
       </div>
 
@@ -197,7 +230,19 @@ export default function MyAttendanceTab() {
                       {new Date(item.date).toLocaleDateString()}
                     </TableCell>
 
-                    <TableCell>{item.status}</TableCell>
+                    <TableCell>
+  <Badge
+    variant={
+      item.status === "PRESENT"
+        ? "default"
+        : item.status === "LATE"
+        ? "secondary"
+        : "destructive"
+    }
+  >
+    {item.status}
+  </Badge>
+</TableCell>
 
                     <TableCell>
                       {item.clockIn

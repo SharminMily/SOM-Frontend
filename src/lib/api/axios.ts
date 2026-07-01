@@ -7,7 +7,7 @@ import axios, {
 import { useAuthStore } from "@/lib/store/auth.store";
 
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL 
 console.log(process.env.NEXT_PUBLIC_API_URL);
 // ─── Axios instance ───────────────────────────────────────────────────────────
 
@@ -17,7 +17,7 @@ if (!BASE_URL) {
 
 export const api: AxiosInstance = axios.create({
  baseURL: BASE_URL,
-  withCredentials: true,
+   withCredentials: true,
   headers: { "Content-Type": "application/json" },
   timeout: 15000,
 });
