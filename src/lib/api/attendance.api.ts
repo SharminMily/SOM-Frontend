@@ -51,4 +51,6 @@ export const attendanceApi = {
     api
       .patch(`/attendance/${attendanceId}`, payload)
       .then((r) => r.data),
+     getAllTodayAttendance: () =>
+  api.get(`/attendance/today`).then((r) => r.data), 
 };

@@ -91,18 +91,18 @@ export const sidebarItems = {
     },
 
     // 💰 PAYROLL
-    {
-      title: "Payroll",
-      href: "/dashboard/admin/payroll",
-      icon: DollarSign,
-    },
+    // {
+    //   title: "Payroll",
+    //   href: "/dashboard/admin/payroll",
+    //   icon: DollarSign,
+    // },
 
-    // 📊 REPORTS
-    {
-      title: "Reports",
-      href: "/dashboard/admin/reports",
-      icon: FileText,
-    },
+    // // 📊 REPORTS
+    // {
+    //   title: "Reports",
+    //   href: "/dashboard/admin/reports",
+    //   icon: FileText,
+    // },
 
 
 
@@ -112,6 +112,11 @@ export const sidebarItems = {
     //   href: "/dashboard/admin/settings",
     //   icon: Settings,
     // },
+    {
+      title: "Home",
+      href: "/",
+      icon: House,
+    },
   ],
 
   [USER_ROLE.MANAGER]: [
@@ -120,12 +125,12 @@ export const sidebarItems = {
       href: "/dashboard/manager",
       icon: LayoutDashboard,
     },
-    {
-      title: "Team",
-      href: "/dashboard/manager/team",
-      icon: UsersRound,
-    },
-        // 📋 TASK MANAGEMENT
+    // {
+    //   title: "Team",
+    //   href: "/dashboard/manager/team",
+    //   icon: UsersRound,
+    // },
+    // 📋 TASK MANAGEMENT
 
     {
       title: "Projects",
@@ -137,7 +142,7 @@ export const sidebarItems = {
     //   href: "/dashboard/manager/tasks",
     //   icon: ListTodo,
     // },
-  
+
 
     // 🔔 SYSTEM
     {
@@ -170,19 +175,30 @@ export const sidebarItems = {
       href: "/dashboard/manager/leaves",
       icon: CalendarX,
     },
-
-    // 💰 PAYROLL
     {
-      title: "Payroll",
-      href: "/dashboard/manager/payroll",
-      icon: DollarSign,
+      title: "Profile",
+      href: "/dashboard/manager/profile",
+      icon: User,
     },
 
+
+    // 💰 PAYROLL
+    // {
+    //   title: "Payroll",
+    //   href: "/dashboard/manager/payroll",
+    //   icon: DollarSign,
+    // },
+
     // 📊 REPORTS
+    // {
+    //   title: "Reports",
+    //   href: "/dashboard/manager/reports",
+    //   icon: FileText,
+    // },
     {
-      title: "Reports",
-      href: "/dashboard/manager/reports",
-      icon: FileText,
+      title: "Home",
+      href: "/",
+      icon: House,
     },
   ],
 
