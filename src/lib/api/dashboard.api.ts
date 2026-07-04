@@ -1,10 +1,13 @@
 import api from "./axios";
 
 export const dashboardApi = {
+  getAdminDashboard: async () => {
+    const { data } = await api.get("/dashboard/admin");
+    return data;
+  },
 
-   getManagerDashboard: async () => {
+  getManagerDashboard: async () => {
     const { data } = await api.get("/dashboard/manager");
-    console.log("dataaaaaaaaaa",data.data)
     return data;
   },
 
@@ -12,7 +15,4 @@ export const dashboardApi = {
     const { data } = await api.get("/dashboard/employee");
     return data;
   },
-
- 
-  
 };
