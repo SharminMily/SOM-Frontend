@@ -5,7 +5,7 @@ export const dashboardApi = {
    getManagerDashboard: async () => {
     const { data } = await api.get("/dashboard/manager");
     console.log("dataaaaaaaaaa",data.data)
-    return data.data;
+    return data;
   },
 
   getEmployeeDashboard: async () => {
