@@ -26,14 +26,14 @@ import { useParams } from "next/navigation";
 export default function TasksPage() {
   // useParams can return string | string[] — normalise to string
   const params = useParams();
-  console.log("ALL PARAMS:", params);
+  // console.log("ALL PARAMS:", params);
   const projectId = Array.isArray(params.projectId)
     ? params.projectId[0]
     : (params.projectId as string);
 
   const { tasks, loading, getTasks, deleteTask } = useTaskStore();
-  console.log("Project ID:", projectId); // ✅ log to verify projectId is correct and not undefined
-  console.log("tasks", tasks); // ✅ log to verify projectId is correct and not undefined
+  // console.log("Project ID:", projectId); // ✅ log to verify projectId is correct and not undefined
+  // console.log("tasks", tasks); // ✅ log to verify projectId is correct and not undefined
 
   // ✅ search state was missing — added here
   const [search, setSearch] = useState("");

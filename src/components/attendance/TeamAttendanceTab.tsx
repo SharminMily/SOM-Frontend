@@ -40,12 +40,12 @@ type TeamAttendance = {
 
 export default function TeamAttendanceTab() {
   const { user } = useAuthStore();
-   console.log("records user", user);
-    console.log("departmentId check:", user?.departmentId);
+  //  console.log("records user", user);
+  //   console.log("departmentId check:", user?.departmentId);
   const [loading, setLoading] = useState(false);
 
   const [records, setRecords] = useState<TeamAttendance[]>([]);
-  console.log("records employee", records);
+  // console.log("records employee", records);
   const [stats, setStats] = useState({
     total: 0,
     present: 0,
@@ -59,14 +59,14 @@ const loadData = async () => {
 
    const attendanceRes = await attendanceApi.getAllTodayAttendance();
 
-console.log("RAW response:", attendanceRes.data); // eita age add korun
+// console.log("RAW response:", attendanceRes.data); // eita age add korun
 
 const employeeOnly: TeamAttendance[] = (attendanceRes.data || []).filter(
   (item: TeamAttendance) => item.user.role === "EMPLOYEE"
 );
 
-console.log("Filtered:", employeeOnly);
-    setRecords(employeeOnly);
+// console.log("Filtered:", employeeOnly);
+//     setRecords(employeeOnly);
 
     setStats({
       total: employeeOnly.length,

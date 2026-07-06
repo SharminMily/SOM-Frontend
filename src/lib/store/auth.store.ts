@@ -90,7 +90,7 @@ export const useAuthStore = create<AuthState>()(
         logout: () => {
           // Fire-and-forget — we don't await because we redirect immediately.
           fetch(
-            `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api"}/auth/logout`,
+            `${process.env.NEXT_PUBLIC_BACKEND_DEPLOY_URL}/auth/logout`,
             { method: "POST", credentials: "include" }
           ).catch(() => {});
 

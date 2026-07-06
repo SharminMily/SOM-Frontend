@@ -7,12 +7,11 @@ import axios, {
 import { useAuthStore } from "@/lib/store/auth.store";
 
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL 
-console.log(process.env.NEXT_PUBLIC_API_URL);
-// ─── Axios instance ───────────────────────────────────────────────────────────
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_DEPLOY_URL 
+// console.log("BASE_URL:", process.env.NEXT_PUBLIC_BACKEND_DEPLOY_URL);
 
 if (!BASE_URL) {
-  throw new Error("NEXT_PUBLIC_API_URL is missing");
+  throw new Error("NEXT_PUBLIC_BACKEND_DEPLOY_URL is missing");
 }
 
 export const api: AxiosInstance = axios.create({

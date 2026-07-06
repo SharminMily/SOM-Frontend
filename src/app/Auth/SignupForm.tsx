@@ -13,9 +13,16 @@ const schema = z.object({
   lastName:  z.string().min(1, "Required"),
   email:     z.string().email("Enter a valid email"),
   password:  z.string().min(8, "At least 8 characters"),
-  role:      z.enum(["EMPLOYEE", "MANAGER", "HR", "ADMIN"]).default("EMPLOYEE"),
+ role: z.enum(["ADMIN", "MANAGER", "EMPLOYEE", "HR"]).default("EMPLOYEE"),
 });
-type FormData = z.infer<typeof schema>;
+
+type FormData = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  role?: "ADMIN" | "MANAGER" | "EMPLOYEE" | "HR";
+};
 
 const ROLES = [
   { value: "EMPLOYEE", label: "Employee" },

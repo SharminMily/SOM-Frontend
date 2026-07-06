@@ -22,7 +22,7 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] =
     useState<Notification[]>([]);
 
-console.log("notifications", notifications);
+// console.log("notifications", notifications);
 
   const [unreadCount, setUnreadCount] =
     useState(0);
@@ -117,12 +117,9 @@ console.log("notifications", notifications);
           </div>
 
           <NotificationList
-            notifications={
-              notifications
-            }
-            onRead={
-              handleRead
-            }
+            notifications={ notifications}
+            onRead={ handleRead }
+           onRefresh={loadData}
           />
 
         </CardContent>

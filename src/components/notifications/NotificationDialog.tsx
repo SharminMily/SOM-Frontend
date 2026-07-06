@@ -63,11 +63,11 @@ export default function NotificationDialog({
         return;
       }
 
-      console.log("Submitting notification:", {
-        title,
-        message,
-        type,
-      });
+      // console.log("Submitting notification:", {
+      //   title,
+      //   message,
+      //   type,
+      // });
 
       if (notification) {
         await notificationApi.updateNotification(

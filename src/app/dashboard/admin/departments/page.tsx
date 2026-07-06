@@ -44,7 +44,7 @@ export default function DepartmentsPage() {
 
       setDepartments(res.data || []);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     } finally {
       setLoading(false);
     }

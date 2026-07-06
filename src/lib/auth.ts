@@ -17,7 +17,7 @@ export const getCurrentUser = cache(async () => {
   try {
     const { payload } = await jwtVerify(accessToken, ACCESS_SECRET);
 
-    console.log("JWT verified:", payload);
+    // console.log("JWT verified:", payload);
 
     return {
       id: payload.id as string,

@@ -41,11 +41,11 @@ export default function ManagerLeavePage() {
   const loadData = async () => {
     try {
       const res = await leaveApi.getMyRequests();
-      console.log("MY REQUESTS:", res);
+      // console.log("MY REQUESTS:", res);
 
       setRequests(res?.data || []);
     } catch (err) {
-      console.log("LOAD ERROR:", err);
+      // console.log("LOAD ERROR:", err);
     } finally {
       setLoading(false);
     }
@@ -59,7 +59,7 @@ export default function ManagerLeavePage() {
   const applyLeave = async () => {
     try {
       // DEBUG
-      console.log("PAYLOAD:", form);
+      // console.log("PAYLOAD:", form);
 
       if (
         !form.leaveType ||
@@ -87,7 +87,7 @@ export default function ManagerLeavePage() {
 
       loadData();
     } catch (err: any) {
-      console.log("SUBMIT ERROR:", err?.response?.data);
+      // console.log("SUBMIT ERROR:", err?.response?.data);
     }
   };
 

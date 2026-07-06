@@ -10,16 +10,12 @@ import {
 } from "@/components/ui/table";
 import { useAttendanceStore } from "@/lib/store/attendance.store";
 
-
-
 export default function AttendanceTable() {
-  const { history } = useAttendanceStore();
+  const { attendance } = useAttendanceStore();
 
   return (
     <div className="border rounded-lg">
-
       <Table>
-
         <TableHeader>
           <TableRow>
             <TableHead>Date</TableHead>
@@ -30,15 +26,13 @@ export default function AttendanceTable() {
         </TableHeader>
 
         <TableBody>
-          {history.map((item) => (
+          {attendance.map((item) => (
             <TableRow key={item.id}>
               <TableCell>
                 {new Date(item.date).toLocaleDateString()}
               </TableCell>
 
-              <TableCell>
-                {item.status}
-              </TableCell>
+              <TableCell>{item.status}</TableCell>
 
               <TableCell>
                 {item.clockIn
@@ -54,7 +48,6 @@ export default function AttendanceTable() {
             </TableRow>
           ))}
         </TableBody>
-
       </Table>
     </div>
   );

@@ -7,8 +7,8 @@ import NotificationDialog from "./NotificationDialog";
 
 interface Props {
   notifications: Notification[];
-  onRead: (notificationId: string) => void;
-  onRefresh: () => void;
+  onRead: (id: string) => Promise<void>;
+  onRefresh?: () => void; // optional করা হলো
 }
 
 export default function NotificationList({
@@ -29,11 +29,10 @@ export default function NotificationList({
       {notifications.map((notification) => (
         <div
           key={notification.id}
-          className={`rounded-xl border p-5 transition-all ${
-            notification.isRead
+          className={`rounded-xl border p-5 transition-all ${notification.isRead
               ? "bg-muted/20"
               : "bg-primary/5 border-primary/20"
-          }`}
+            }`}
         >
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 p-4">
             <div className="space-y-2">
@@ -67,9 +66,7 @@ export default function NotificationList({
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() =>
-                    onRead(notification.id)
-                  }
+                  onClick={() => onRead(notification.id)}
                 >
                   Mark Read
                 </Button>
@@ -77,9 +74,11 @@ export default function NotificationList({
 
               <NotificationDialog
                 notification={notification}
-                onSuccess={onRefresh}
+                onSuccess={onRefresh ?? (() => { })}
               />
             </div>
+
+
           </div>
         </div>
       ))}

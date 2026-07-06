@@ -69,7 +69,7 @@ const onSubmit = async (data: FormData) => {
     
     setAuth(user, accessToken);
 
-    console.log("✅ Login successful", user);
+    // console.log("✅ Login successful", user);
     router.push(ROLE_ROUTES[user.role] ?? "/dashboard");
 
   } catch (err: unknown) {

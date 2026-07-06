@@ -134,7 +134,7 @@ export default function ManagerDashboard() {
         const res = await dashboardApi.getManagerDashboard();
         setDashboard(res.data);
       } catch (err) {
-        console.log(err);
+        // console.log(err);
       } finally {
         setLoading(false);
       }

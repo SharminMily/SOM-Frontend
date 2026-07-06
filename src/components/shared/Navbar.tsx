@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, Search } from "lucide-react";
+import { Building2, Menu, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -17,17 +17,12 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur-md">
       <div className="flex h-16 items-center px-6">
         {/* Logo */}
-        <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-2xl bg-[#10B981] flex items-center justify-center">
-            <span className="text-white font-bold text-2xl">S</span>
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight ">
-              SOM
-            </h1>
-            <p className="text-xs text-muted-foreground -mt-1">Smart Office Management</p>
-          </div>
-        </div>
+      <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <Building2 className="h-4 w-4" />
+              </div>
+              <span className="font-bold text-foreground tracking-tight">SOM</span>
+            </div>
 
         {/* Search Bar */}
         <div className="flex-1 max-w-xl mx-8 hidden md:block">

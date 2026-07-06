@@ -38,7 +38,7 @@ export default function AllEmployees() {
       const res = await userApi.getAllUsers();
       setEmployees(res.data || []);
     } catch (err) {
-      console.log(err);
+      // console.log(err);
     } finally {
       setLoading(false);
     }
@@ -57,7 +57,7 @@ export default function AllEmployees() {
       await userApi.getUserIdDelete(id);
       setEmployees((prev) => prev.filter((emp) => emp.id !== id));
     } catch (err) {
-      console.log(err);
+      // console.log(err);
     }
   };
 
