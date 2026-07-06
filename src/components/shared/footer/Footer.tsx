@@ -71,12 +71,12 @@ const SOCIALS: SocialLink[] = [
 export function Footer() {
   return (
     <footer className="border-t border-border bg-background">
-      <div className="container mx-auto px-6 py-16">
-        <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+      <div className="container mx-auto px-4 py-12 sm:px-6 sm:py-16">
+        {/* 1 col on phones, 2 cols on tablets, brand+3 cols on desktop */}
+        <div className="grid gap-10 sm:grid-cols-2 sm:gap-12 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
           {/* Brand column */}
-          <div className="space-y-5 max-w-sm">
+          <div className="col-span-2 max-w-sm space-y-5 lg:col-span-1">
 
-            
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <Building2 className="h-4 w-4" />
@@ -84,13 +84,12 @@ export function Footer() {
               <span className="font-bold text-foreground tracking-tight">SOM</span>
             </div>
 
-
             <p className="text-sm leading-relaxed text-muted-foreground">
               Smart Office Management brings attendance, leave, payroll, and
               project tracking into one operational dashboard — so teams spend
               less time on admin and more time on work that matters.
             </p>
-            <div className="flex items-center gap-3 pt-1">
+            <div className="flex flex-wrap items-center gap-3 pt-1">
               {SOCIALS.map(({ icon: Icon, href, label }) => (
                 <a
                   key={label}
@@ -110,7 +109,7 @@ export function Footer() {
           <FooterColumn title="Legal" links={LEGAL_LINKS} />
         </div>
 
-        <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-sm text-muted-foreground sm:flex-row">
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-center text-sm text-muted-foreground sm:mt-14 sm:flex-row sm:text-left">
           <p>© {new Date().getFullYear()} SOM — Smart Office Management. All rights reserved.</p>
           <a
             href="#"
