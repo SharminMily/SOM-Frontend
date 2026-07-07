@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Eye, EyeOff, Loader2, ArrowRight, Mail, Lock, User, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowRight, Mail, Lock, User, CheckCircle, Sun, Moon } from "lucide-react";
+import { useTheme } from "next-themes";
 import { authApi } from "@/lib/api/auth.api";
 import { cn } from "@/lib/utils";
 
@@ -13,7 +14,7 @@ const schema = z.object({
   lastName:  z.string().min(1, "Required"),
   email:     z.string().email("Enter a valid email"),
   password:  z.string().min(8, "At least 8 characters"),
- role: z.enum(["ADMIN", "MANAGER", "EMPLOYEE", "HR"]).default("EMPLOYEE"),
+  role: z.enum(["ADMIN", "MANAGER", "EMPLOYEE", "HR"]).default("EMPLOYEE"),
 });
 
 type FormData = {
@@ -42,12 +43,95 @@ function getStrength(pw: string): number {
 const STRENGTH_LABELS = ["", "Weak", "Fair", "Good", "Strong"];
 const STRENGTH_COLORS = ["", "#ef4444", "#f59e0b", "#10B981", "#10B981"];
 
+// Theme tokens: everything the UI needs for both modes lives here,
+// so switching theme is just swapping which object we read from.
+const THEME = {
+  dark: {
+    pageBg: "#0a1119",
+    cardBg: "#0d1520",
+    inputBg: "#111d2b",
+    border: "rgba(255,255,255,0.07)",
+    borderHover: "rgba(255,255,255,0.12)",
+    socialBg: "rgba(255,255,255,0.03)",
+    socialHoverBg: "rgba(255,255,255,0.04)",
+    divider: "rgba(255,255,255,0.07)",
+    dividerText: "#3d6055",
+    text: "#ffffff",
+    subtext: "#7fa89a",
+    placeholder: "#3d6055",
+    errorBg: "rgba(239,68,68,0.1)",
+    errorBorder: "rgba(239,68,68,0.2)",
+    errorText: "#f87171",
+    trackBg: "rgba(255,255,255,0.08)",
+    roleInactiveBg: "rgba(255,255,255,0.03)",
+    roleInactiveBorder: "rgba(255,255,255,0.07)",
+    roleDotInactive: "rgba(255,255,255,0.15)",
+  },
+  light: {
+    pageBg: "#eef3f1",
+    cardBg: "#ffffff",
+    inputBg: "#f4f7f6",
+    border: "rgba(15,35,28,0.09)",
+    borderHover: "rgba(15,35,28,0.18)",
+    socialBg: "rgba(15,35,28,0.02)",
+    socialHoverBg: "rgba(15,35,28,0.05)",
+    divider: "rgba(15,35,28,0.09)",
+    dividerText: "#6b8b7f",
+    text: "#0f231c",
+    subtext: "#4b6b5f",
+    placeholder: "#9db3aa",
+    errorBg: "rgba(239,68,68,0.08)",
+    errorBorder: "rgba(239,68,68,0.18)",
+    errorText: "#dc2626",
+    trackBg: "rgba(15,35,28,0.08)",
+    roleInactiveBg: "rgba(15,35,28,0.02)",
+    roleInactiveBorder: "rgba(15,35,28,0.09)",
+    roleDotInactive: "rgba(15,35,28,0.18)",
+  },
+} as const;
+
+type Mode = "dark" | "light";
+type ThemeTokens = (typeof THEME)[Mode];
+
+function ThemeToggle({
+  mode,
+  setTheme,
+  c,
+}: {
+  mode: Mode;
+  setTheme: (t: string) => void;
+  c: ThemeTokens;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => setTheme(mode === "dark" ? "light" : "dark")}
+      aria-label={mode === "dark" ? "Switch to day mode" : "Switch to dark mode"}
+      className="absolute right-6 top-8 sm:right-9 sm:top-9 flex items-center justify-center w-8 h-8 rounded-full transition-all hover:-translate-y-px"
+      style={{
+        background: mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(15,35,28,0.05)",
+        border: `1px solid ${c.border}`,
+        color: c.subtext,
+      }}
+    >
+      {mode === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </button>
+  );
+}
+
 export function SignupForm() {
   const [showPw, setShowPw] = useState(false);
   const [pwVal, setPwVal] = useState("");
   const [selectedRole, setSelectedRole] = useState("EMPLOYEE");
   const [success, setSuccess] = useState(false);
   const [serverError, setServerError] = useState("");
+
+  // --- theme wired to the global next-themes provider ---
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const mode: Mode = (resolvedTheme as Mode) ?? "dark";
+  const c = THEME[mode];
 
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } =
     useForm<FormData>({ resolver: zodResolver(schema), defaultValues: { role: "EMPLOYEE" } });
@@ -65,22 +149,26 @@ export function SignupForm() {
     }
   };
 
+  // Avoid rendering theme-dependent styles before hydration
+  if (!mounted) return null;
+
   if (success) {
     return (
       <div
-        className="min-h-screen w-full flex items-center justify-center px-4 py-8"
-        style={{ background: "#0a1119" }}
+        className="min-h-screen w-full flex items-center justify-center px-4 py-8 transition-colors duration-300"
+        style={{ background: c.pageBg }}
       >
         <div
-          className="w-full max-w-[420px] flex flex-col items-center justify-center text-center rounded-2xl px-6 py-12 sm:px-9 sm:py-14"
-          style={{ background: "#0d1520" }}
+          className="relative w-full max-w-[420px] flex flex-col items-center justify-center text-center rounded-2xl px-6 py-12 sm:px-9 sm:py-14 transition-colors duration-300"
+          style={{ background: c.cardBg }}
         >
+          <ThemeToggle mode={mode} setTheme={setTheme} c={c} />
           <div className="w-16 h-16 rounded-full flex items-center justify-center mb-5"
             style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)" }}>
             <CheckCircle className="h-8 w-8 text-[#10B981]" />
           </div>
-          <h2 className="font-display text-lg sm:text-xl font-bold text-white mb-2">Check your inbox</h2>
-          <p className="text-[13px] text-[#7fa89a] max-w-[260px] leading-relaxed">
+          <h2 className="font-display text-lg sm:text-xl font-bold mb-2" style={{ color: c.text }}>Check your inbox</h2>
+          <p className="text-[13px] max-w-[260px] leading-relaxed" style={{ color: c.subtext }}>
             We sent a verification link to your email. Click it to activate your account.
           </p>
           <a href="/login" className="mt-8 text-[13px] font-medium text-[#10B981] hover:underline">
@@ -92,20 +180,20 @@ export function SignupForm() {
   }
 
   return (
-    // Full-viewport wrapper: centers the card on tablet/desktop,
-    // sits edge-to-edge with breathing room on phones.
     <div
-      className="min-h-screen w-full flex items-center justify-center px-4 py-8 sm:px-6"
-      style={{ background: "#0a1119" }}
+      className="min-h-screen w-full flex items-center justify-center px-4 py-8 sm:px-6 transition-colors duration-300"
+      style={{ background: c.pageBg }}
     >
       <div
-        className="w-full max-w-[440px] flex flex-col justify-center rounded-2xl px-6 py-7 sm:px-9 sm:py-8"
-        style={{ background: "#0d1520" }}
+        className="relative w-full max-w-[440px] flex flex-col justify-center rounded-2xl px-6 py-7 sm:px-9 sm:py-8 transition-colors duration-300"
+        style={{ background: c.cardBg }}
       >
-        <h1 className="font-display text-[20px] sm:text-[22px] font-bold tracking-tight text-white mb-1">
+        <ThemeToggle mode={mode} setTheme={setTheme} c={c} />
+
+        <h1 className="font-display text-[20px] sm:text-[22px] font-bold tracking-tight mb-1 pr-10" style={{ color: c.text }}>
           Create your account
         </h1>
-        <p className="text-[12.5px] sm:text-[13px] text-[#7fa89a] mb-6">
+        <p className="text-[12.5px] sm:text-[13px] mb-6" style={{ color: c.subtext }}>
           Get started with SOM — it&apos;s free
         </p>
 
@@ -117,8 +205,18 @@ export function SignupForm() {
             <button
               key={label}
               type="button"
-              className="flex items-center justify-center gap-2 py-2.5 rounded-[9px] text-[12.5px] font-medium text-[#7fa89a] border border-[rgba(255,255,255,0.07)] hover:border-[rgba(255,255,255,0.12)] hover:text-white hover:bg-[rgba(255,255,255,0.04)] transition-all"
-              style={{ background: "rgba(255,255,255,0.03)" }}
+              className="flex items-center justify-center gap-2 py-2.5 rounded-[9px] text-[12.5px] font-medium transition-all"
+              style={{ background: c.socialBg, border: `1px solid ${c.border}`, color: c.subtext }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = c.socialHoverBg;
+                e.currentTarget.style.borderColor = c.borderHover;
+                e.currentTarget.style.color = c.text;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = c.socialBg;
+                e.currentTarget.style.borderColor = c.border;
+                e.currentTarget.style.color = c.subtext;
+              }}
             >
               {icon} <span className="whitespace-nowrap">Sign up with {label}</span>
             </button>
@@ -126,16 +224,16 @@ export function SignupForm() {
         </div>
 
         <div className="flex items-center gap-3 my-4">
-          <div className="flex-1 h-px bg-[rgba(255,255,255,0.07)]" />
-          <span className="text-[10.5px] sm:text-[11px] text-[#3d6055] text-center shrink-0">
+          <div className="flex-1 h-px" style={{ background: c.divider }} />
+          <span className="text-[10.5px] sm:text-[11px] text-center shrink-0" style={{ color: c.dividerText }}>
             or register with email
           </span>
-          <div className="flex-1 h-px bg-[rgba(255,255,255,0.07)]" />
+          <div className="flex-1 h-px" style={{ background: c.divider }} />
         </div>
 
         {serverError && (
-          <div className="mb-4 flex items-start gap-2.5 rounded-xl px-4 py-3 text-[12.5px] text-red-400"
-            style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
+          <div className="mb-4 flex items-start gap-2.5 rounded-xl px-4 py-3 text-[12.5px]"
+            style={{ background: c.errorBg, border: `1px solid ${c.errorBorder}`, color: c.errorText }}>
             <svg className="h-4 w-4 shrink-0 mt-[1px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>
             <span className="break-words">{serverError}</span>
           </div>
@@ -145,37 +243,73 @@ export function SignupForm() {
           <div className="grid grid-cols-2 gap-3">
             {[{ id: "firstName" as const, label: "First name", ph: "Jane" }, { id: "lastName" as const, label: "Last name", ph: "Smith" }].map(({ id, label, ph }) => (
               <div key={id} className="space-y-1.5">
-                <label className="text-[12px] font-medium text-[#7fa89a]">{label}</label>
+                <label className="text-[12px] font-medium" style={{ color: c.subtext }}>{label}</label>
                 <div className="relative">
-                  {id === "firstName" && <User className="absolute left-3 top-1/2 -translate-y-1/2 h-[14px] w-[14px] text-[#3d6055] pointer-events-none" />}
-                  <input {...register(id)} placeholder={ph} className={cn("w-full min-w-0 rounded-[9px] bg-[#111d2b] border border-[rgba(255,255,255,0.07)] py-2.5 text-[13px] text-white placeholder:text-[#3d6055] outline-none focus:border-[rgba(16,185,129,0.5)] focus:shadow-[0_0_0_3px_rgba(16,185,129,0.08)] transition-all", id === "firstName" ? "pl-9 pr-3" : "px-3")} />
+                  {id === "firstName" && (
+                    <User
+                      className="absolute left-3 top-1/2 -translate-y-1/2 h-[14px] w-[14px] pointer-events-none"
+                      style={{ color: c.placeholder }}
+                    />
+                  )}
+                  <input
+                    {...register(id)}
+                    placeholder={ph}
+                    className={cn("w-full min-w-0 rounded-[9px] py-2.5 text-[13px] outline-none focus:shadow-[0_0_0_3px_rgba(16,185,129,0.08)] transition-all", id === "firstName" ? "pl-9 pr-3" : "px-3")}
+                    style={{ background: c.inputBg, border: `1px solid ${c.border}`, color: c.text }}
+                    onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(16,185,129,0.5)")}
+                    onBlur={(e) => (e.currentTarget.style.borderColor = c.border)}
+                  />
                 </div>
-                {errors[id] && <p className="text-[11px] text-red-400">{errors[id]?.message}</p>}
+                {errors[id] && <p className="text-[11px]" style={{ color: c.errorText }}>{errors[id]?.message}</p>}
               </div>
             ))}
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-[#7fa89a]">Work email</label>
+            <label className="text-[12px] font-medium" style={{ color: c.subtext }}>Work email</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-[14px] w-[14px] text-[#3d6055] pointer-events-none" />
-              <input {...register("email")} type="email" placeholder="you@company.com" autoComplete="email" inputMode="email" className="w-full rounded-[9px] bg-[#111d2b] border border-[rgba(255,255,255,0.07)] pl-9 pr-4 py-2.5 text-[13px] text-white placeholder:text-[#3d6055] outline-none focus:border-[rgba(16,185,129,0.5)] focus:shadow-[0_0_0_3px_rgba(16,185,129,0.08)] transition-all" />
+              <Mail
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-[14px] w-[14px] pointer-events-none"
+                style={{ color: c.placeholder }}
+              />
+              <input
+                {...register("email")}
+                type="email"
+                placeholder="you@company.com"
+                autoComplete="email"
+                inputMode="email"
+                className="w-full rounded-[9px] pl-9 pr-4 py-2.5 text-[13px] outline-none focus:shadow-[0_0_0_3px_rgba(16,185,129,0.08)] transition-all"
+                style={{ background: c.inputBg, border: `1px solid ${c.border}`, color: c.text }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(16,185,129,0.5)")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = c.border)}
+              />
             </div>
-            {errors.email && <p className="text-[11px] text-red-400">{errors.email.message}</p>}
+            {errors.email && <p className="text-[11px]" style={{ color: c.errorText }}>{errors.email.message}</p>}
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-[#7fa89a]">Password</label>
+            <label className="text-[12px] font-medium" style={{ color: c.subtext }}>Password</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-[14px] w-[14px] text-[#3d6055] pointer-events-none" />
-              <input {...register("password")} type={showPw ? "text" : "password"} placeholder="Min. 8 characters"
+              <Lock
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-[14px] w-[14px] pointer-events-none"
+                style={{ color: c.placeholder }}
+              />
+              <input
+                {...register("password")}
+                type={showPw ? "text" : "password"}
+                placeholder="Min. 8 characters"
                 onChange={(e) => { setPwVal(e.target.value); register("password").onChange(e); }}
-                className="w-full rounded-[9px] bg-[#111d2b] border border-[rgba(255,255,255,0.07)] pl-9 pr-10 py-2.5 text-[13px] text-white placeholder:text-[#3d6055] outline-none focus:border-[rgba(16,185,129,0.5)] focus:shadow-[0_0_0_3px_rgba(16,185,129,0.08)] transition-all" />
+                className="w-full rounded-[9px] pl-9 pr-10 py-2.5 text-[13px] outline-none focus:shadow-[0_0_0_3px_rgba(16,185,129,0.08)] transition-all"
+                style={{ background: c.inputBg, border: `1px solid ${c.border}`, color: c.text }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(16,185,129,0.5)")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = c.border)}
+              />
               <button
                 type="button"
                 onClick={() => setShowPw(v => !v)}
                 aria-label={showPw ? "Hide password" : "Show password"}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#3d6055] hover:text-[#7fa89a] transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+                style={{ color: c.placeholder }}
               >
                 {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -185,17 +319,17 @@ export function SignupForm() {
                 <div className="flex gap-1 flex-1">
                   {[1,2,3,4].map(i => (
                     <div key={i} className="flex-1 h-[3px] rounded-full transition-all duration-300"
-                      style={{ background: i <= strength ? STRENGTH_COLORS[strength] : "rgba(255,255,255,0.08)" }} />
+                      style={{ background: i <= strength ? STRENGTH_COLORS[strength] : c.trackBg }} />
                   ))}
                 </div>
                 <span className="text-[11px] font-medium shrink-0" style={{ color: STRENGTH_COLORS[strength] }}>{STRENGTH_LABELS[strength]}</span>
               </div>
             )}
-            {errors.password && <p className="text-[11px] text-red-400">{errors.password.message}</p>}
+            {errors.password && <p className="text-[11px]" style={{ color: c.errorText }}>{errors.password.message}</p>}
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-[#7fa89a]">Your role</label>
+            <label className="text-[12px] font-medium" style={{ color: c.subtext }}>Your role</label>
             <div className="grid grid-cols-3 gap-1.5">
               {ROLES.map(r => {
                 const active = selectedRole === r.value;
@@ -203,8 +337,12 @@ export function SignupForm() {
                   <button key={r.value} type="button"
                     onClick={() => { setSelectedRole(r.value); setValue("role", r.value); }}
                     className="flex items-center justify-center gap-1.5 py-2 px-1 rounded-[8px] text-[11.5px] sm:text-[12px] font-medium transition-all"
-                    style={{ background: active ? "rgba(16,185,129,0.12)" : "rgba(255,255,255,0.03)", border: active ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(255,255,255,0.07)", color: active ? "#10B981" : "#7fa89a" }}>
-                    <span className="w-1.5 h-1.5 rounded-full shrink-0 transition-colors" style={{ background: active ? "#10B981" : "rgba(255,255,255,0.15)" }} />
+                    style={{
+                      background: active ? "rgba(16,185,129,0.12)" : c.roleInactiveBg,
+                      border: active ? "1px solid rgba(16,185,129,0.4)" : `1px solid ${c.roleInactiveBorder}`,
+                      color: active ? "#10B981" : c.subtext,
+                    }}>
+                    <span className="w-1.5 h-1.5 rounded-full shrink-0 transition-colors" style={{ background: active ? "#10B981" : c.roleDotInactive }} />
                     <span className="truncate">{r.label}</span>
                   </button>
                 );
@@ -216,7 +354,7 @@ export function SignupForm() {
             <div className="mt-0.5 w-4 h-4 rounded flex items-center justify-center shrink-0" style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)" }}>
               <svg className="w-2.5 h-2.5 text-[#10B981]" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 6l3 3 5-5"/></svg>
             </div>
-            <span className="text-[12px] text-[#7fa89a] leading-relaxed">
+            <span className="text-[12px] leading-relaxed" style={{ color: c.subtext }}>
               I agree to the <a href="#" className="text-[#10B981] hover:underline">Terms of Service</a> and <a href="#" className="text-[#10B981] hover:underline">Privacy Policy</a>
             </span>
           </label>
@@ -228,7 +366,7 @@ export function SignupForm() {
           </button>
         </form>
 
-        <p className="mt-4 text-center text-[12.5px] text-[#7fa89a]">
+        <p className="mt-4 text-center text-[12.5px]" style={{ color: c.subtext }}>
           Already have an account? <a href="/login" className="text-[#10B981] hover:underline">Sign in</a>
         </p>
       </div>

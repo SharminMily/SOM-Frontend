@@ -10,7 +10,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const ranOnce = useRef(false);
 
   useEffect(() => {
-    if (ranOnce.current) return; // React StrictMode-এ dev mode-এ ডাবল-রান আটকায়
+    // React StrictMode-এ dev mode-এ ডাবল-রান আটকায়
+    if (ranOnce.current) return; 
     ranOnce.current = true;
 
     api

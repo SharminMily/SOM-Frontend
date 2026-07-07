@@ -27,10 +27,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>
-        <Providers>
+
+        <Providers >
          <AuthProvider>{children}</AuthProvider>
         </Providers>
         <Toaster richColors position="top-right" />
+        
       </body>
     </html>
   );

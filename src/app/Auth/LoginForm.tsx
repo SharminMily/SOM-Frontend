@@ -1,14 +1,14 @@
 "use client";
 import { jwtDecode } from "jwt-decode";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Eye, EyeOff, Loader2, ArrowRight, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowRight, Mail, Lock, Sun, Moon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { authApi } from "@/lib/api/auth.api";
 import { AuthUser, useAuthStore } from "@/lib/store/auth.store";
-
 
 const schema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -23,11 +23,59 @@ const ROLE_ROUTES: Record<string, string> = {
   EMPLOYEE: "/dashboard/employee",
 };
 
+// Theme tokens: everything the UI needs for both modes lives here,
+// so switching theme is just swapping which object we read from.
+const THEME = {
+  dark: {
+    pageBg: "#0a1119",
+    cardBg: "#0d1520",
+    inputBg: "#111d2b",
+    border: "rgba(255,255,255,0.07)",
+    borderHover: "rgba(255,255,255,0.12)",
+    socialBg: "rgba(255,255,255,0.03)",
+    socialHoverBg: "rgba(255,255,255,0.04)",
+    divider: "rgba(255,255,255,0.07)",
+    dividerText: "#3d6055",
+    text: "#ffffff",
+    subtext: "#7fa89a",
+    placeholder: "#3d6055",
+    errorBg: "rgba(239,68,68,0.1)",
+    errorBorder: "rgba(239,68,68,0.2)",
+    errorText: "#f87171",
+  },
+  light: {
+    pageBg: "#eef3f1",
+    cardBg: "#ffffff",
+    inputBg: "#f4f7f6",
+    border: "rgba(15,35,28,0.09)",
+    borderHover: "rgba(15,35,28,0.18)",
+    socialBg: "rgba(15,35,28,0.02)",
+    socialHoverBg: "rgba(15,35,28,0.05)",
+    divider: "rgba(15,35,28,0.09)",
+    dividerText: "#6b8b7f",
+    text: "#0f231c",
+    subtext: "#4b6b5f",
+    placeholder: "#9db3aa",
+    errorBg: "rgba(239,68,68,0.08)",
+    errorBorder: "rgba(239,68,68,0.18)",
+    errorText: "#dc2626",
+  },
+} as const;
+
+type Mode = "dark" | "light";
+
 export function LoginForm() {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [showPw, setShowPw] = useState(false);
   const [serverError, setServerError] = useState("");
+
+  // --- theme wired to the global next-themes provider ---
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const mode: Mode = (resolvedTheme as Mode) ?? "dark";
+  const c = THEME[mode];
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } =
     useForm<FormData>({ resolver: zodResolver(schema) });
@@ -73,21 +121,40 @@ export function LoginForm() {
     }
   };
 
+  // Avoid rendering theme-dependent styles before hydration
+  if (!mounted) return null;
+
   return (
-    // Full-viewport wrapper: centers the card on tablet/desktop,
-    // goes edge-to-edge on phones so nothing feels cramped or clipped.
     <div
-      className="min-h-screen w-full flex items-center justify-center px-4 py-8 sm:px-6"
-      style={{ background: "#0a1119" }}
+      className="min-h-screen w-full flex items-center justify-center px-4 py-8 sm:px-6 transition-colors duration-300"
+      style={{ background: c.pageBg }}
     >
       <div
-        className="w-full max-w-[420px] flex flex-col justify-center rounded-2xl px-6 py-8 sm:px-9 sm:py-10"
-        style={{ background: "#0d1520" }}
+        className="relative w-full max-w-[420px] flex flex-col justify-center rounded-2xl px-6 py-8 sm:px-9 sm:py-10 transition-colors duration-300"
+        style={{ background: c.cardBg }}
       >
-        <h1 className="font-display text-[20px] sm:text-[22px] font-bold tracking-tight text-white mb-1">
+        {/* Theme toggle */}
+        <button
+          type="button"
+          onClick={() => setTheme(mode === "dark" ? "light" : "dark")}
+          aria-label={mode === "dark" ? "Switch to day mode" : "Switch to dark mode"}
+          className="absolute right-6 top-8 sm:right-9 sm:top-10 flex items-center justify-center w-8 h-8 rounded-full transition-all hover:-translate-y-px"
+          style={{
+            background: mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(15,35,28,0.05)",
+            border: `1px solid ${c.border}`,
+            color: c.subtext,
+          }}
+        >
+          {mode === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </button>
+
+        <h1
+          className="font-display text-[20px] sm:text-[22px] font-bold tracking-tight mb-1 pr-10"
+          style={{ color: c.text }}
+        >
           Welcome back
         </h1>
-        <p className="text-[12.5px] sm:text-[13px] text-[#7fa89a] mb-6 sm:mb-7">
+        <p className="text-[12.5px] sm:text-[13px] mb-6 sm:mb-7" style={{ color: c.subtext }}>
           Sign in to your SOM workspace
         </p>
 
@@ -117,8 +184,18 @@ export function LoginForm() {
             <button
               key={label}
               type="button"
-              className="flex items-center justify-center gap-2 py-2.5 rounded-[9px] text-[12.5px] font-medium text-[#7fa89a] border border-[rgba(255,255,255,0.07)] hover:border-[rgba(255,255,255,0.12)] hover:text-white hover:bg-[rgba(255,255,255,0.04)] transition-all"
-              style={{ background: "rgba(255,255,255,0.03)" }}
+              className="flex items-center justify-center gap-2 py-2.5 rounded-[9px] text-[12.5px] font-medium transition-all"
+              style={{ background: c.socialBg, border: `1px solid ${c.border}`, color: c.subtext }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = c.socialHoverBg;
+                e.currentTarget.style.borderColor = c.borderHover;
+                e.currentTarget.style.color = c.text;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = c.socialBg;
+                e.currentTarget.style.borderColor = c.border;
+                e.currentTarget.style.color = c.subtext;
+              }}
             >
               {icon}
               <span className="whitespace-nowrap">Continue with {label}</span>
@@ -128,17 +205,19 @@ export function LoginForm() {
 
         {/* Divider */}
         <div className="flex items-center gap-3 my-5">
-          <div className="flex-1 h-px bg-[rgba(255,255,255,0.07)]" />
-          <span className="text-[10.5px] sm:text-[11px] text-[#3d6055] text-center shrink-0">
+          <div className="flex-1 h-px" style={{ background: c.divider }} />
+          <span className="text-[10.5px] sm:text-[11px] text-center shrink-0" style={{ color: c.dividerText }}>
             or sign in with email
           </span>
-          <div className="flex-1 h-px bg-[rgba(255,255,255,0.07)]" />
+          <div className="flex-1 h-px" style={{ background: c.divider }} />
         </div>
 
         {/* Error */}
         {serverError && (
-          <div className="mb-4 flex items-start gap-2.5 rounded-xl px-4 py-3 text-[12.5px] text-red-400"
-            style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
+          <div
+            className="mb-4 flex items-start gap-2.5 rounded-xl px-4 py-3 text-[12.5px]"
+            style={{ background: c.errorBg, border: `1px solid ${c.errorBorder}`, color: c.errorText }}
+          >
             <svg className="h-4 w-4 shrink-0 mt-[1px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" /><path d="m15 9-6 6M9 9l6 6" />
             </svg>
@@ -149,48 +228,69 @@ export function LoginForm() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Email */}
           <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-[#7fa89a]">Email address</label>
+            <label className="text-[12px] font-medium" style={{ color: c.subtext }}>Email address</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-[15px] w-[15px] text-[#3d6055] pointer-events-none" />
+              <Mail
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-[15px] w-[15px] pointer-events-none"
+                style={{ color: c.placeholder }}
+              />
               <input
                 {...register("email")}
                 type="email"
                 placeholder="you@company.com"
                 autoComplete="email"
                 inputMode="email"
-                className="w-full rounded-[9px] bg-[#111d2b] border border-[rgba(255,255,255,0.07)] pl-9 pr-4 py-2.5 text-[13px] text-white placeholder:text-[#3d6055] outline-none focus:border-[rgba(16,185,129,0.5)] focus:shadow-[0_0_0_3px_rgba(16,185,129,0.08)] transition-all"
+                className="w-full rounded-[9px] pl-9 pr-4 py-2.5 text-[13px] outline-none focus:shadow-[0_0_0_3px_rgba(16,185,129,0.08)] transition-all"
+                style={{
+                  background: c.inputBg,
+                  border: `1px solid ${c.border}`,
+                  color: c.text,
+                }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(16,185,129,0.5)")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = c.border)}
               />
             </div>
-            {errors.email && <p className="text-[11.5px] text-red-400">{errors.email.message}</p>}
+            {errors.email && <p className="text-[11.5px]" style={{ color: c.errorText }}>{errors.email.message}</p>}
           </div>
 
           {/* Password */}
           <div className="space-y-1.5">
             <div className="flex flex-wrap items-center justify-between gap-1">
-              <label className="text-[12px] font-medium text-[#7fa89a]">Password</label>
+              <label className="text-[12px] font-medium" style={{ color: c.subtext }}>Password</label>
               <a href="/auth/forgot-password" className="text-[11.5px] text-[#10B981] hover:underline">
                 Forgot password?
               </a>
             </div>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-[15px] w-[15px] text-[#3d6055] pointer-events-none" />
+              <Lock
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-[15px] w-[15px] pointer-events-none"
+                style={{ color: c.placeholder }}
+              />
               <input
                 {...register("password")}
                 type={showPw ? "text" : "password"}
                 placeholder="••••••••"
                 autoComplete="current-password"
-                className="w-full rounded-[9px] bg-[#111d2b] border border-[rgba(255,255,255,0.07)] pl-9 pr-10 py-2.5 text-[13px] text-white placeholder:text-[#3d6055] outline-none focus:border-[rgba(16,185,129,0.5)] focus:shadow-[0_0_0_3px_rgba(16,185,129,0.08)] transition-all"
+                className="w-full rounded-[9px] pl-9 pr-10 py-2.5 text-[13px] outline-none focus:shadow-[0_0_0_3px_rgba(16,185,129,0.08)] transition-all"
+                style={{
+                  background: c.inputBg,
+                  border: `1px solid ${c.border}`,
+                  color: c.text,
+                }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(16,185,129,0.5)")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = c.border)}
               />
               <button
                 type="button"
                 onClick={() => setShowPw((v) => !v)}
                 aria-label={showPw ? "Hide password" : "Show password"}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#3d6055] hover:text-[#7fa89a] transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+                style={{ color: c.placeholder }}
               >
                 {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            {errors.password && <p className="text-[11.5px] text-red-400">{errors.password.message}</p>}
+            {errors.password && <p className="text-[11.5px]" style={{ color: c.errorText }}>{errors.password.message}</p>}
           </div>
 
           {/* Remember */}
@@ -204,7 +304,7 @@ export function LoginForm() {
               </svg>
             </div>
             <input {...register("remember")} type="checkbox" className="sr-only" />
-            <span className="text-[12px] text-[#7fa89a]">Keep me signed in on this device</span>
+            <span className="text-[12px]" style={{ color: c.subtext }}>Keep me signed in on this device</span>
           </label>
 
           <button
@@ -223,7 +323,7 @@ export function LoginForm() {
           </button>
         </form>
 
-        <p className="mt-5 text-center text-[12.5px] text-[#7fa89a]">
+        <p className="mt-5 text-center text-[12.5px]" style={{ color: c.subtext }}>
           Don&apos;t have an account?{" "}
           <a href="/signup" className="text-[#10B981] hover:underline">Request access</a>
         </p>
