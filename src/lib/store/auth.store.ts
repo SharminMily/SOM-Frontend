@@ -1,8 +1,7 @@
 import { create } from "zustand";
 import { persist, devtools } from "zustand/middleware";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
+// ─── Types 
 export type UserRole   = "ADMIN" | "MANAGER" | "EMPLOYEE";
 export type UserStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED";
 
@@ -23,8 +22,7 @@ export interface AuthUser {
   updatedAt: string;
 }
 
-// ─── State & actions ──────────────────────────────────────────────────────────
-
+// ─── State & actions 
 interface AuthState {
   // State
   user: AuthUser | null;
@@ -41,7 +39,7 @@ interface AuthState {
   clearAuth: () => void;       // silent clear (no redirect) — used by interceptor
 }
 
-// ─── Role helpers ─────────────────────────────────────────────────────────────
+// ─── Role helpers 
 
 const ROLE_DASHBOARD: Record<UserRole, string> = {
   ADMIN:    "/dashboard/admin", 
@@ -49,19 +47,18 @@ const ROLE_DASHBOARD: Record<UserRole, string> = {
   EMPLOYEE: "/dashboard/employee",
 };
 
-// ─── Store ────────────────────────────────────────────────────────────────────
-
+// ─── Store 
 export const useAuthStore = create<AuthState>()(
   devtools(
     persist(
       (set, get) => ({
-        // ── Initial state ──────────────────────────────────────────────────
+        // ── Initial state
         user: null,
         accessToken: null,
         isAuthenticated: false,
         isLoading: true,          // assume loading until first refresh resolves
 
-        // ── setAuth ────────────────────────────────────────────────────────
+        // ── setAuth 
         // Called after successful login or refresh.
         setAuth: (user, accessToken) =>
           set(
@@ -70,21 +67,21 @@ export const useAuthStore = create<AuthState>()(
             "auth/setAuth"
           ),
 
-        // ── setToken ───────────────────────────────────────────────────────
+        // ── setToken 
         // Called when the Axios interceptor silently refreshes the token.
         setToken: (accessToken) =>
           set({ accessToken }, false, "auth/setToken"),
 
-        // ── setUser ────────────────────────────────────────────────────────
+        // ── setUser ─
         // Called after profile update so the navbar/sidebar reflect new data.
         setUser: (user) =>
           set({ user }, false, "auth/setUser"),
 
-        // ── setLoading ─────────────────────────────────────────────────────
+        // ── setLoading 
         setLoading: (isLoading) =>
           set({ isLoading }, false, "auth/setLoading"),
 
-        // ── logout ─────────────────────────────────────────────────────────
+        // ── logout ──
         // Calls the API to clear the httpOnly cookie, wipes local state,
         // then redirects to login.
         logout: () => {
@@ -105,7 +102,7 @@ export const useAuthStore = create<AuthState>()(
           }
         },
 
-        // ── clearAuth ──────────────────────────────────────────────────────
+        // ── clearAuth ─
         // Silent clear used by the Axios interceptor when a refresh fails.
         // Does NOT redirect — the caller handles navigation.
         clearAuth: () =>
@@ -130,7 +127,7 @@ export const useAuthStore = create<AuthState>()(
   )
 );
 
-// ─── Derived selectors ────────────────────────────────────────────────────────
+// ─── Derived selectors ─
 // Use these in components instead of selecting the whole store to avoid
 // unnecessary re-renders.
 
@@ -165,7 +162,7 @@ export const selectInitials = (s: AuthState): string => {
   return `${s.user.firstName[0] ?? ""}${s.user.lastName[0] ?? ""}`.toUpperCase();
 };
 
-// ─── Role guards (use in components / pages) ─────────────────────────────────
+// ─── Role guards (use in components / pages) 
 
 export const selectIsAdmin    = (s: AuthState) => s.user?.role === "ADMIN";
 // export const selectIsHR       = (s: AuthState) => s.user?.role === "HR";

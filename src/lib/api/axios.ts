@@ -8,7 +8,6 @@ import { useAuthStore } from "@/lib/store/auth.store";
 
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_DEPLOY_URL 
-// console.log("BASE_URL:", process.env.NEXT_PUBLIC_BACKEND_DEPLOY_URL);
 
 if (!BASE_URL) {
   throw new Error("NEXT_PUBLIC_BACKEND_DEPLOY_URL is missing");

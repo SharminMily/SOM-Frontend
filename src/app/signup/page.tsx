@@ -13,7 +13,7 @@ export default function SignupPage() {
           headline={<>Join <em className="not-italic text-emerald-600 dark:text-[#10B981]">thousands</em> of teams already running smarter</>}
           subtext="Set up your workspace in minutes. Choose your role and start managing from day one."
           features={[
-            { icon: "👥", label: "Four access levels",  value: "Admin · HR · Manager · Employee" },
+            { icon: "👥", label: "Four access levels",  value: "Admin · Manager · Employee" },
             { icon: "🔐", label: "Enterprise security",  value: "JWT + bcrypt + httpOnly cookies"        },
             { icon: "⚡", label: "Production-ready",     value: "Next.js 16 + Node + PostgreSQL"         },
           ]}

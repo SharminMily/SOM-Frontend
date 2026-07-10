@@ -13,8 +13,8 @@ export default function LoginPage() {
           subtext="One platform for HR, payroll, attendance, projects and your entire team — secured by role-based access."
           features={[
             { icon: "👥", label: "People management",   value: "Employees, roles & departments" },
-            { icon: "💰", label: "Payroll & attendance", value: "Auto-generated, PDF payslips"    },
-            { icon: "🗂", label: "Projects & tasks",     value: "Kanban boards, progress tracking" },
+            { icon: "🔔", label: "Notification & attendance", value: "Auto-generated, Announcement"    },
+            { icon: "🎯", label: "Projects & tasks",     value: "progress tracking, boards, mission" },
           ]}
         />
         <LoginForm />
