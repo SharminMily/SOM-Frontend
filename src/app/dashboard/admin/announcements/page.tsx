@@ -30,7 +30,7 @@ export default function AnnouncementPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="p-6 space-y-6">
       <h1 className="text-xl font-bold">
         Announcements
       </h1>

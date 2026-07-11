@@ -16,6 +16,21 @@ export const userApi = {
     const res = await api.delete(`/user/${id}`);
     return res.data;
   },
+  // Admin: update any user
+  updateUser: async (
+    id: string,
+    payload: {
+      firstName?: string;
+      lastName?: string;
+      role?: string;
+      status?: string;
+      phone?: string;
+      departmentId?: string;
+    }
+  ) => {
+    const res = await api.patch(`/user/${id}`, payload);
+    return res.data;
+  },
    // Logged in user
   getMyProfile: async () => {
     const { data } = await api.get("/user/me");

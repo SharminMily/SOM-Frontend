@@ -8,7 +8,8 @@ export const departmentApi = {
 
   createDepartments: async (data: {
     name: string;
-    description: string;
+    description?: string;
+    headId?: string;
   }) => {
     const res = await api.post("/department", data);
     return res.data;
@@ -17,8 +18,9 @@ export const departmentApi = {
   updateDepartments: async (
     id: string,
     data: {
-      name: string;
-      description: string;
+      name?: string;
+      description?: string;
+      headId?: string;
     }
   ) => {
     const res = await api.patch(`/department/${id}`, data);

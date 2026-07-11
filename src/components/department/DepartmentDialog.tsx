@@ -38,26 +38,48 @@ export default function DepartmentDialog({
     headId: "",
   });
 
-  // LOAD EDIT DATA
+// FETCH USERS —
+
+useEffect(() => {
+  if (!open) return;
+
+  const fetchUsers = async () => {
+    try {
+      const res = await userApi.getAllUsers();
+      setUsers(res.data || []);
+    } catch (err) {
+      toast.error("Couldn't load users");
+    }
+  };
+
+  fetchUsers();
+}, [open]);
+
+  // LOAD EDIT DATA — dialog 
   useEffect(() => {
-    if (editData) {
+    if (!open) return;
+
+    if (isEdit && editData) {
       setFormData({
         name: editData.name || "",
         description: editData.description || "",
-        headId: editData.headId || "",
+        headId: editData.headId || editData.head?.id || "",
       });
+    } else {
+      setFormData({ name: "", description: "", headId: "" });
+      setSearch("");
     }
-  }, [editData]);
+  }, [open, isEdit, editData]);
 
-  // FETCH USERS
+  // users load
   useEffect(() => {
-    const fetchUsers = async () => {
-      const res = await userApi.getAllUsers();
-      setUsers(res.data || []);
-    };
-
-    fetchUsers();
-  }, []);
+    if (open && isEdit && formData.headId && users.length > 0) {
+      const currentHead = users.find((u) => u.id === formData.headId);
+      if (currentHead) {
+        setSearch(currentHead.email);
+      }
+    }
+  }, [open, isEdit, users, formData.headId]);
 
   const filteredUsers = users.filter((u) =>
     u.email.toLowerCase().includes(search.toLowerCase())
@@ -65,28 +87,30 @@ export default function DepartmentDialog({
 
   // SUBMIT
   const handleSubmit = async () => {
+    if (!formData.name.trim()) {
+      toast.error("Department name is required");
+      return;
+    }
+
+    const payload = {
+      name: formData.name,
+      description: formData.description || undefined,
+      headId: formData.headId || undefined, // খালি স্ট্রিং backend এ পাঠানো হবে না
+    };
+
     try {
       setLoading(true);
 
       if (isEdit) {
-        await departmentApi.updateDepartments(
-          editData.id,
-          formData
-        );
-
+        await departmentApi.updateDepartments(editData.id, payload);
         toast.success("Department updated successfully");
       } else {
-        await departmentApi.createDepartments(formData);
-
+        await departmentApi.createDepartments(payload);
         toast.success("Department created successfully");
       }
 
       setOpen(false);
-      setFormData({
-        name: "",
-        description: "",
-        headId: "",
-      });
+      setFormData({ name: "", description: "", headId: "" });
       setSearch("");
 
       onSuccess?.();
@@ -147,35 +171,48 @@ export default function DepartmentDialog({
           </div>
 
           {/* MANAGER SEARCH */}
-          <div>
+          <div className="relative">
             <Label>Manager (Email)</Label>
 
             <Input
               placeholder="Search email..."
               value={search}
-              onChange={(e) =>
-                setSearch(e.target.value)
-              }
+              onChange={(e) => {
+                setSearch(e.target.value);
+                // ম্যানুয়ালি টাইপ করলে আগের selection clear করা, যাতে ভুল head সেভ না হয়
+                setFormData((p) => ({ ...p, headId: "" }));
+              }}
             />
 
-            {search && (
-              <div className="border rounded-md max-h-40 overflow-auto">
-                {filteredUsers.map((u) => (
-                  <div
-                    key={u.id}
-                    onClick={() => {
-                      setFormData((p) => ({
-                        ...p,
-                        headId: u.id,
-                      }));
+            {formData.headId && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Selected — clear text to search someone else
+              </p>
+            )}
 
-                      setSearch(u.email);
-                    }}
-                    className="p-2 hover:bg-muted cursor-pointer"
-                  >
-                    {u.email}
+            {search && !formData.headId && (
+              <div className="border rounded-md max-h-40 overflow-auto mt-1">
+                {filteredUsers.length === 0 ? (
+                  <div className="p-2 text-sm text-muted-foreground">
+                    No user found
                   </div>
-                ))}
+                ) : (
+                  filteredUsers.map((u) => (
+                    <div
+                      key={u.id}
+                      onClick={() => {
+                        setFormData((p) => ({
+                          ...p,
+                          headId: u.id,
+                        }));
+                        setSearch(u.email);
+                      }}
+                      className="p-2 hover:bg-muted cursor-pointer text-sm"
+                    >
+                      {u.firstName} {u.lastName} — {u.email}
+                    </div>
+                  ))
+                )}
               </div>
             )}
           </div>

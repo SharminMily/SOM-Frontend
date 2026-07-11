@@ -10,6 +10,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 
 import {
@@ -21,15 +22,46 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 import { Search, Pencil, Trash2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { userApi } from "@/lib/api/user.api";
+import { departmentApi } from "@/lib/api/department.api";
 
 export default function AllEmployees() {
   const [employees, setEmployees] = useState<any[]>([]);
-  // console.log("employees",employees);
+  const [departments, setDepartments] = useState<any[]>([]);
+  console.log(departments);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
+
+  /* EDIT STATE */
+  const [editOpen, setEditOpen] = useState(false);
+  const [editSaving, setEditSaving] = useState(false);
+  const [editingUser, setEditingUser] = useState<any>(null);
+  const [editForm, setEditForm] = useState({
+    firstName: "",
+    lastName: "",
+    role: "",
+    status: "",
+    departmentId: "",
+  });
 
   /* FETCH USERS */
   const fetchUsers = async () => {
@@ -38,7 +70,7 @@ export default function AllEmployees() {
       const res = await userApi.getAllUsers();
       setEmployees(res.data || []);
     } catch (err) {
-      // console.log(err);
+      toast.error("Couldn't load employees. Retry");
     } finally {
       setLoading(false);
     }
@@ -48,19 +80,74 @@ export default function AllEmployees() {
     fetchUsers();
   }, []);
 
-  /* DELETE USER */
-  const handleDelete = async (id: string) => {
-    const confirm = window.confirm("Are you sure to delete?");
-    if (!confirm) return;
+  /* FETCH DEPARTMENTS */
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const res = await departmentApi.getAlldepartments();
+        setDepartments(res.data || []);
+      } catch (err) {
+        toast.error("Couldn't load departments");
+      }
+    };
+    fetchDepartments();
+  }, []);
 
-    try {
-      await userApi.getUserIdDelete(id);
-      setEmployees((prev) => prev.filter((emp) => emp.id !== id));
-    } catch (err) {
-      // console.log(err);
-    }
+  /* DELETE USER */
+  const handleDelete = (id: string, name: string) => {
+    toast("Delete this employee?", {
+      description: `${name} will be permanently removed.`,
+      action: {
+        label: "Delete",
+        onClick: async () => {
+          try {
+            await userApi.getUserIdDelete(id);
+            setEmployees((prev) => prev.filter((emp) => emp.id !== id));
+            toast.success("Employee deleted");
+          } catch (err) {
+            toast.error("Couldn't delete employee. Retry");
+          }
+        },
+      },
+      cancel: {
+        label: "Cancel",
+        onClick: () => {},
+      },
+    });
   };
 
+  /* OPEN EDIT DIALOG (একটাই, duplicate মুছে দিলাম) */
+  const handleEditOpen = (emp: any) => {
+    setEditingUser(emp);
+    setEditForm({
+      firstName: emp.firstName || "",
+      lastName: emp.lastName || "",
+      role: emp.role || "",
+      status: emp.status || "",
+      departmentId: emp.departmentId || emp.department?.id || "",
+    });
+    setEditOpen(true);
+  };
+
+  /* SAVE EDIT */
+const handleEditSave = async () => {
+  if (!editingUser) return;
+
+  try {
+    setEditSaving(true);
+    await userApi.updateUser(editingUser.id, editForm);
+
+    toast.success("Employee updated");
+    setEditOpen(false);
+    setEditingUser(null);
+
+    await fetchUsers(); // পুরো list fresh data দিয়ে reload
+  } catch (err) {
+    toast.error("Couldn't update employee. Retry");
+  } finally {
+    setEditSaving(false);
+  }
+};
   /* SEARCH */
   const filteredEmployees = employees.filter((emp) => {
     const fullName = `${emp.firstName} ${emp.lastName}`.toLowerCase();
@@ -82,7 +169,7 @@ export default function AllEmployees() {
           </p>
         </div>
 
-        <Button>+ Add Employee</Button>
+        <Button>Add employee</Button>
       </div>
 
       {/* SEARCH */}
@@ -163,14 +250,20 @@ export default function AllEmployees() {
                     {/* ACTIONS */}
                     <TableCell className="text-right space-x-2">
 
-                      <Button size="sm" variant="outline">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEditOpen(emp)}
+                      >
                         <Pencil className="w-4 h-4" />
                       </Button>
 
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => handleDelete(emp.id)}
+                        onClick={() =>
+                          handleDelete(emp.id, `${emp.firstName} ${emp.lastName}`)
+                        }
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -194,6 +287,123 @@ export default function AllEmployees() {
 
         </CardContent>
       </Card>
+
+      {/* EDIT DIALOG */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Employee</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                value={editForm.firstName}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, firstName: e.target.value }))
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                value={editForm.lastName}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, lastName: e.target.value }))
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Select
+                value={editForm.role}
+                onValueChange={(value) =>
+                  setEditForm((prev) => ({ ...prev, role: value }))
+                }
+              >
+                <SelectTrigger id="role">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ADMIN">ADMIN</SelectItem>
+                  <SelectItem value="EMPLOYEE">EMPLOYEE</SelectItem>
+                  <SelectItem value="MANAGER">MANAGER</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select
+                value={editForm.status}
+                onValueChange={(value) =>
+                  setEditForm((prev) => ({ ...prev, status: value }))
+                }
+              >
+                <SelectTrigger id="status">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ACTIVE">ACTIVE</SelectItem>
+                  <SelectItem value="INACTIVE">INACTIVE</SelectItem>
+                  <SelectItem value="SUSPENDED">SUSPENDED</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="department">Department</Label>
+             <Select
+  value={editForm.departmentId || "unassigned"}
+  onValueChange={(value) =>
+    setEditForm((prev) => ({
+      ...prev,
+      departmentId: value === "unassigned" ? "" : value,
+    }))
+  }
+>
+  <SelectTrigger id="department">
+    <SelectValue placeholder="Select department" />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="unassigned">No department</SelectItem>
+    {departments
+      .filter((dept) => dept.id) // খালি/undefined id বাদ
+      .map((dept) => (
+        <SelectItem key={dept.id} value={dept.id}>
+          {dept.name}
+        </SelectItem>
+      ))}
+  </SelectContent>
+</Select>
+            </div>
+
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditOpen(false)}
+              disabled={editSaving}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleEditSave} disabled={editSaving}>
+              {editSaving ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : null}
+              Save changes
+            </Button>
+          </DialogFooter>
+
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

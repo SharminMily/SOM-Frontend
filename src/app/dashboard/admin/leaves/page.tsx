@@ -105,7 +105,7 @@ export default function LeaveManagementPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
 
       {/* HEADER */}
 
@@ -119,89 +119,58 @@ export default function LeaveManagementPage() {
         </p>
       </div>
 
-      {/* SEARCH + STATS */}
 
-      <div className="flex flex-col gap-4 xl:flex-row">
+
+      {/* SEARCH + STATS */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
 
         {/* SEARCH */}
-
-        <div className="relative flex-1">
-
+        <div className="relative w-full lg:flex-1">
           <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-
           <Input
             placeholder="Search employee, leave type, status..."
-            className="h-12 rounded-2xl pl-10"
+            className="h-12 w-full rounded-2xl pl-10"
             value={search}
-            onChange={(e) =>
-              setSearch(e.target.value)
-            }
+            onChange={(e) => setSearch(e.target.value)}
           />
-
         </div>
 
         {/* STATS */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:w-auto lg:shrink-0">
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-
-          <div className="flex min-w-[140px] items-center gap-3 rounded-2xl border bg-background px-4 py-3">
-            <CalendarDays className="h-5 w-5 text-primary" />
-
-            <div>
-              <p className="text-xs text-muted-foreground">
-                Total
-              </p>
-
-              <p className="font-bold text-xl">
-                {totalRequests}
-              </p>
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3 rounded-2xl border bg-background px-3 sm:px-4 py-3">
+            <CalendarDays className="h-5 w-5 shrink-0 text-primary" />
+            <div className="min-w-0">
+              <p className="truncate text-xs text-muted-foreground">Total</p>
+              <p className="truncate font-bold text-lg sm:text-xl">{totalRequests}</p>
             </div>
           </div>
 
-          <div className="flex min-w-[140px] items-center gap-3 rounded-2xl border bg-background px-4 py-3">
-            <div className="h-3 w-3 rounded-full bg-yellow-500" />
-
-            <div>
-              <p className="text-xs text-muted-foreground">
-                Pending
-              </p>
-
-              <p className="font-bold text-xl text-yellow-500">
-                {pendingRequests}
-              </p>
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3 rounded-2xl border bg-background px-3 sm:px-4 py-3">
+            <div className="h-3 w-3 shrink-0 rounded-full bg-yellow-500" />
+            <div className="min-w-0">
+              <p className="truncate text-xs text-muted-foreground">Pending</p>
+              <p className="truncate font-bold text-lg sm:text-xl text-yellow-500">{pendingRequests}</p>
             </div>
           </div>
 
-          <div className="flex min-w-[140px] items-center gap-3 rounded-2xl border bg-background px-4 py-3">
-            <div className="h-3 w-3 rounded-full bg-green-500" />
-
-            <div>
-              <p className="text-xs text-muted-foreground">
-                Approved
-              </p>
-
-              <p className="font-bold text-xl text-green-500">
-                {approvedRequests}
-              </p>
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3 rounded-2xl border bg-background px-3 sm:px-4 py-3">
+            <div className="h-3 w-3 shrink-0 rounded-full bg-green-500" />
+            <div className="min-w-0">
+              <p className="truncate text-xs text-muted-foreground">Approved</p>
+              <p className="truncate font-bold text-lg sm:text-xl text-green-500">{approvedRequests}</p>
             </div>
           </div>
 
-          <div className="flex min-w-[140px] items-center gap-3 rounded-2xl border bg-background px-4 py-3">
-            <div className="h-3 w-3 rounded-full bg-red-500" />
-
-            <div>
-              <p className="text-xs text-muted-foreground">
-                Rejected
-              </p>
-
-              <p className="font-bold text-xl text-red-500">
-                {rejectedRequests}
-              </p>
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3 rounded-2xl border bg-background px-3 sm:px-4 py-3">
+            <div className="h-3 w-3 shrink-0 rounded-full bg-red-500" />
+            <div className="min-w-0">
+              <p className="truncate text-xs text-muted-foreground">Rejected</p>
+              <p className="truncate font-bold text-lg sm:text-xl text-red-500">{rejectedRequests}</p>
             </div>
           </div>
 
         </div>
-
       </div>
 
       {/* TABLE */}
@@ -273,10 +242,10 @@ export default function LeaveManagementPage() {
                 ) : (
                   filteredRequests.map(
                     (leave: any) => (
-                      <TableRow  key={leave.id} >
+                      <TableRow key={leave.id} >
 
                         <TableCell className="font-medium">
-                            {leave.user?.email || "No Email"}
+                          {leave.user?.email || "No Email"}
                         </TableCell>
 
                         <TableCell>
@@ -304,12 +273,12 @@ export default function LeaveManagementPage() {
                           <Badge
                             variant={
                               leave.status ===
-                              "APPROVED"
+                                "APPROVED"
                                 ? "default"
                                 : leave.status ===
                                   "REJECTED"
-                                ? "destructive"
-                                : "secondary"
+                                  ? "destructive"
+                                  : "secondary"
                             }
                           >
                             {leave.status}
@@ -321,33 +290,33 @@ export default function LeaveManagementPage() {
 
                           {leave.status ===
                             "PENDING" && (
-                            <div className="flex justify-end gap-2">
+                              <div className="flex justify-end gap-2">
 
-                              <Button
-                                size="sm"
-                                onClick={() =>
-                                  handleApprove(
-                                    leave.id
-                                  )
-                                }
-                              >
-                                <Check className="h-4 w-4" />
-                              </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() =>
+                                    handleApprove(
+                                      leave.id
+                                    )
+                                  }
+                                >
+                                  <Check className="h-4 w-4" />
+                                </Button>
 
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() =>
-                                  handleReject(
-                                    leave.id
-                                  )
-                                }
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() =>
+                                    handleReject(
+                                      leave.id
+                                    )
+                                  }
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
 
-                            </div>
-                          )}
+                              </div>
+                            )}
 
                         </TableCell>
 
