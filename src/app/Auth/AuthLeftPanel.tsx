@@ -48,7 +48,7 @@ export function AuthLeftPanel({ headline, subtext, features }: AuthLeftPanelProp
         <div>
           <p className="font-display font-bold text-white text-[17px] leading-none">SOM</p>
           <p className="text-[9.5px] text-[#3d6055] uppercase tracking-[.12em] mt-0.5">
-            Super Office Mgmt
+            Smart Office Mgmt
           </p>
         </div>
       </div>

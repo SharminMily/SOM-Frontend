@@ -12,6 +12,15 @@ import {
   Loader2,
 } from "lucide-react";
 
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
 import { dashboardApi } from "@/lib/api/dashboard.api";
 
 interface DepartmentSummary {
@@ -74,6 +83,9 @@ function timeAgo(dateString: string) {
   return `${diffDay} day${diffDay > 1 ? "s" : ""} ago`;
 }
 
+const activityIconWrap =
+  "w-8 h-8 rounded-full bg-muted flex items-center justify-center mt-0.5";
+
 export default function AdminDashboard() {
   const [data, setData] = useState<AdminDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,7 +115,7 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#0a0f1c] text-gray-900 dark:text-white">
+      <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
         <Loader2 className="h-6 w-6 animate-spin mr-2" />
         Loading dashboard...
       </div>
@@ -112,7 +124,7 @@ export default function AdminDashboard() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#0a0f1c] text-gray-900 dark:text-white">
+      <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
         {error ?? "Something went wrong."}
       </div>
     );
@@ -125,191 +137,205 @@ export default function AdminDashboard() {
   const validDepartments = departments.filter((d) => d.id && d.name);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0a0f1c] text-gray-900 dark:text-white transition-colors">
+    <div className="min-h-screen bg-background text-foreground transition-colors">
       <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-            <p className="text-gray-500 dark:text-gray-400">
-              System Overview
-            </p>
+            <p className="text-muted-foreground">System Overview</p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-              System Healthy
-            </div>
-          </div>
+          <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+            System Healthy
+          </Badge>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <div className="bg-white dark:bg-[#111d2b] border border-gray-200 dark:border-[#1f2a3f] rounded-2xl p-6 hover:border-emerald-500/30 transition-all">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
-                  Total Employees
-                </p>
-                <p className="text-4xl font-bold mt-3">
-                  {stats.totalEmployees}
-                </p>
+          <Card className="hover:border-emerald-500/30 transition-all">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-muted-foreground text-sm">
+                    Total Employees
+                  </p>
+                  <p className="text-4xl font-bold mt-3">
+                    {stats.totalEmployees}
+                  </p>
+                </div>
+                <Users className="h-10 w-10 text-blue-600 dark:text-blue-500" />
               </div>
-              <Users className="h-10 w-10 text-blue-600 dark:text-blue-500" />
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div className="bg-white dark:bg-[#111d2b] border border-gray-200 dark:border-[#1f2a3f] rounded-2xl p-6 hover:border-emerald-500/30 transition-all">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
-                  Departments
-                </p>
-                <p className="text-4xl font-bold mt-3">
-                  {stats.totalDepartments}
-                </p>
+          <Card className="hover:border-emerald-500/30 transition-all">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-muted-foreground text-sm">
+                    Departments
+                  </p>
+                  <p className="text-4xl font-bold mt-3">
+                    {stats.totalDepartments}
+                  </p>
+                </div>
+                <Building2 className="h-10 w-10 text-purple-600 dark:text-purple-500" />
               </div>
-              <Building2 className="h-10 w-10 text-purple-600 dark:text-purple-500" />
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div className="bg-white dark:bg-[#111d2b] border border-gray-200 dark:border-[#1f2a3f] rounded-2xl p-6 hover:border-emerald-500/30 transition-all">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
-                  Present Today
-                </p>
-                <p className="text-4xl font-bold mt-3">
-                  {stats.presentToday}
-                </p>
-                <p className="text-emerald-600 dark:text-emerald-500 text-sm mt-1">
-                  {stats.attendancePercentage}% attendance
-                </p>
+          <Card className="hover:border-emerald-500/30 transition-all">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-muted-foreground text-sm">
+                    Present Today
+                  </p>
+                  <p className="text-4xl font-bold mt-3">
+                    {stats.presentToday}
+                  </p>
+                  <p className="text-emerald-600 dark:text-emerald-400 text-sm mt-1">
+                    {stats.attendancePercentage}% attendance
+                  </p>
+                </div>
+                <Clock className="h-10 w-10 text-emerald-600 dark:text-emerald-500" />
               </div>
-              <Clock className="h-10 w-10 text-emerald-600 dark:text-emerald-500" />
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div className="bg-white dark:bg-[#111d2b] border border-gray-200 dark:border-[#1f2a3f] rounded-2xl p-6 hover:border-emerald-500/30 transition-all">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
-                  Pending Leaves
-                </p>
-                <p className="text-4xl font-bold mt-3">
-                  {stats.pendingLeaves}
-                </p>
+          <Card className="hover:border-emerald-500/30 transition-all">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-muted-foreground text-sm">
+                    Pending Leaves
+                  </p>
+                  <p className="text-4xl font-bold mt-3">
+                    {stats.pendingLeaves}
+                  </p>
+                </div>
+                <Calendar className="h-10 w-10 text-orange-600 dark:text-orange-500" />
               </div>
-              <Calendar className="h-10 w-10 text-orange-600 dark:text-orange-500" />
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Recent Activity */}
-          <div className="lg:col-span-7 bg-white dark:bg-[#111d2b] border border-gray-200 dark:border-[#1f2a3f] rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
+          <Card className="lg:col-span-7">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2">
                 <Bell className="h-5 w-5" /> Recent Activity
-              </h2>
-            </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-5">
+                {recentActivity.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    No recent activity.
+                  </p>
+                )}
 
-            <div className="space-y-5">
-              {recentActivity.length === 0 && (
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  No recent activity.
-                </p>
-              )}
-
-              {recentActivity.map((item, i) => (
-                <div
-                  key={i}
-                  className="flex gap-4 items-start border-b border-gray-100 dark:border-[#1f2a3f] pb-5 last:border-0 last:pb-0"
-                >
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mt-0.5">
-                    {item.type === "user" && (
-                      <Users className="h-4 w-4 text-emerald-600" />
-                    )}
-                    {item.type === "leave" && (
-                      <Calendar className="h-4 w-4 text-orange-600" />
-                    )}
-                    {item.type === "project" && (
-                      <Award className="h-4 w-4 text-purple-600" />
-                    )}
-                    {item.type === "payroll" && (
-                      <DollarSign className="h-4 w-4 text-emerald-600" />
-                    )}
+                {recentActivity.map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex gap-4 items-start border-b border-border pb-5 last:border-0 last:pb-0"
+                  >
+                    <div className={activityIconWrap}>
+                      {item.type === "user" && (
+                        <Users className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      )}
+                      {item.type === "leave" && (
+                        <Calendar className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                      )}
+                      {item.type === "project" && (
+                        <Award className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                      )}
+                      {item.type === "payroll" && (
+                        <DollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[15px]">{item.text}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {timeAgo(item.date)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-[15px]">{item.text}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {timeAgo(item.date)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Quick Overview */}
           <div className="lg:col-span-5 space-y-6">
             {/* Pending Approvals */}
-            <div className="bg-white dark:bg-[#111d2b] border border-gray-200 dark:border-[#1f2a3f] rounded-2xl p-6">
-              <h2 className="text-lg font-semibold mb-4">
-                Pending Approvals
-              </h2>
-              <div className="space-y-4">
-                {pendingApprovals.length === 0 && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    No pending leave requests.
-                  </p>
-                )}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Pending Approvals</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {pendingApprovals.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      No pending leave requests.
+                    </p>
+                  )}
 
-                {pendingApprovals.map((leave) => (
-                  <div
-                    key={leave.id}
-                    className="flex justify-between items-center"
-                  >
-                    <div>
-                      <p className="font-medium">
-                        Leave Request - {leave.user.firstName}{" "}
-                        {leave.user.lastName}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {leave.totalDays} Day
-                        {leave.totalDays > 1 ? "s" : ""} •{" "}
-                        {leave.leaveType.charAt(0) +
-                          leave.leaveType.slice(1).toLowerCase()}{" "}
-                        Leave
-                      </p>
+                  {pendingApprovals.map((leave) => (
+                    <div
+                      key={leave.id}
+                      className="flex justify-between items-center"
+                    >
+                      <div>
+                        <p className="font-medium">
+                          Leave Request - {leave.user.firstName}{" "}
+                          {leave.user.lastName}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {leave.totalDays} Day
+                          {leave.totalDays > 1 ? "s" : ""} •{" "}
+                          {leave.leaveType.charAt(0) +
+                            leave.leaveType.slice(1).toLowerCase()}{" "}
+                          Leave
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                      >
+                        Approve
+                      </Button>
                     </div>
-                    <button className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg">
-                      Approve
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Department Summary */}
-            <div className="bg-white dark:bg-[#111d2b] border border-gray-200 dark:border-[#1f2a3f] rounded-2xl p-6">
-              <h2 className="text-lg font-semibold mb-4">Departments</h2>
-              <div className="grid grid-cols-2 gap-4">
-                {validDepartments.map((dept) => (
-                  <div
-                    key={dept.id}
-                    className="bg-gray-50 dark:bg-[#1a2538] p-4 rounded-xl"
-                  >
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {dept.name}
-                    </p>
-                    <p className="text-2xl font-bold">
-                      {dept.employeeCount}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Departments</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  {validDepartments.map((dept) => (
+                    <div
+                      key={dept.id}
+                      className="bg-muted p-4 rounded-xl"
+                    >
+                      <p className="text-sm text-muted-foreground">
+                        {dept.name}
+                      </p>
+                      <p className="text-2xl font-bold">
+                        {dept.employeeCount}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

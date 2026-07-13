@@ -8,12 +8,12 @@ export default function Logo() {
       </div>
 
       <div>
-        <p className="font-bold text-white text-lg leading-none">
+        <p className="font-bold text-lg leading-none">
           SOM
         </p>
 
-        <p className="text-[10px] text-[#7fa89a] uppercase tracking-wider">
-          Super Office Mgmt
+        <p className="text-[10px] text-[#7fa89a]  tracking-wider">
+          Smart Office Management
         </p>
       </div>
     </div>
