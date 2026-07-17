@@ -144,7 +144,7 @@ useEffect(() => {
 
           {/* NAME */}
           <div>
-            <Label>Name</Label>
+            <Label className="pb-2">Name</Label>
             <Input
               value={formData.name}
               onChange={(e) =>
@@ -158,7 +158,7 @@ useEffect(() => {
 
           {/* DESCRIPTION */}
           <div>
-            <Label>Description</Label>
+            <Label className="pb-2">Description</Label>
             <Textarea
               value={formData.description}
               onChange={(e) =>
@@ -172,7 +172,7 @@ useEffect(() => {
 
           {/* MANAGER SEARCH */}
           <div className="relative">
-            <Label>Manager (Email)</Label>
+            <Label className="pb-2">Manager (Email)</Label>
 
             <Input
               placeholder="Search email..."

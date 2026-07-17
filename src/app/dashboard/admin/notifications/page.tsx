@@ -117,7 +117,7 @@ export default function NotificationsPage() {
     };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-3 sm:px-6 py-5 space-y-4">
+    <div className="w-full  px-3 sm:px-6 py-5 space-y-4">
 
       {/* HEADER */}
 

@@ -47,7 +47,7 @@ import { departmentApi } from "@/lib/api/department.api";
 export default function AllEmployees() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
-  console.log(departments);
+  // console.log(departments);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -116,7 +116,7 @@ export default function AllEmployees() {
     });
   };
 
-  /* OPEN EDIT DIALOG (একটাই, duplicate মুছে দিলাম) */
+  /* OPEN EDIT DIALOG*/
   const handleEditOpen = (emp: any) => {
     setEditingUser(emp);
     setEditForm({
@@ -141,7 +141,7 @@ const handleEditSave = async () => {
     setEditOpen(false);
     setEditingUser(null);
 
-    await fetchUsers(); // পুরো list fresh data দিয়ে reload
+    await fetchUsers(); 
   } catch (err) {
     toast.error("Couldn't update employee. Retry");
   } finally {
@@ -169,7 +169,7 @@ const handleEditSave = async () => {
           </p>
         </div>
 
-        <Button>Add employee</Button>
+        <Button>All employee</Button>
       </div>
 
       {/* SEARCH */}
