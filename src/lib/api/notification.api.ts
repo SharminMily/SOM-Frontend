@@ -1,4 +1,13 @@
 import api from "./axios";
+export type NotificationType =
+  | "LEAVE_STATUS"
+  | "TASK_ASSIGNED"
+  | "ANNOUNCEMENT"
+  | "PAYSLIP_READY"
+  | "SYSTEM";
+export type TBroadcastTarget = "ALL" | "ROLE";
+
+export type Role = "ADMIN" | "MANAGER" | "EMPLOYEE";
 
 export const notificationApi = {
   getNotifications: async (page = 1, limit = 20) => {
@@ -36,25 +45,36 @@ export const notificationApi = {
 createNotification: async (payload: {
   title: string;
   message: string;
-  type: string;
+  type: NotificationType; // <-- string থেকে বদলাও
 }) => {
   const { data } = await api.post("/notifications", payload);
   return data;
 },
 
-  updateNotification: async (
-    id: string,
-    payload: {
-      title: string;
-      message: string;
-      type: string;
-    }
-  ) => {
-    const { data } = await api.patch(
-      `/notifications/${id}`,
-      payload
-    );
-
+createBroadcastNotification: async (payload: {
+    title: string;
+    message: string;
+    type: NotificationType;
+    target: TBroadcastTarget;
+    roles?: Role[]; 
+  }) => {
+    const { data } = await api.post("/notifications/broadcast", payload);
     return data;
   },
+
+updateNotification: async (
+  id: string,
+  payload: {
+    title: string;
+    message: string;
+    type: NotificationType; // <-- string থেকে বদলাও
+  }
+) => {
+  const { data } = await api.patch(
+    `/notifications/${id}`,
+    payload
+  );
+
+  return data;
+},
 };

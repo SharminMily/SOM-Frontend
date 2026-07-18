@@ -1,204 +1,265 @@
+// components/notifications/NotificationDialog.tsx
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
+import { Plus, Pencil, Send } from "lucide-react";
+
+import {
+  notificationApi,
+  NotificationType,
+  TBroadcastTarget,
+  Role,
+} from "@/lib/api/notification.api";
+import { Notification } from "@/app/types/notification";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
-import { Button } from "@/components/ui/button";
-
-import { Input } from "@/components/ui/input";
-
-import { Textarea } from "@/components/ui/textarea";
-
 import {
   Select,
-  SelectContent,
-  SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectContent,
+  SelectItem,
 } from "@/components/ui/select";
 
-import { notificationApi } from "@/lib/api/notification.api";
+const NOTIFICATION_TYPES: NotificationType[] = [
+  "LEAVE_STATUS",
+  "TASK_ASSIGNED",
+  "ANNOUNCEMENT",
+  "PAYSLIP_READY",
+  "SYSTEM",
+];
 
-interface Props {
-  notification?: any;
+const ROLES: Role[] = ["ADMIN", "MANAGER", "EMPLOYEE"];
+
+interface NotificationDialogProps {
+  notification?: Notification; // দিলে Edit mode, না দিলে Create mode
   onSuccess: () => void;
 }
 
 export default function NotificationDialog({
   notification,
   onSuccess,
-}: Props) {
-  const [open, setOpen] =
-    useState(false);
+}: NotificationDialogProps) {
+  const isEdit = !!notification;
 
-  const [title, setTitle] =
-    useState(notification?.title || "");
+  const [open, setOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const [message, setMessage] =
-    useState(notification?.message || "");
+  const [title, setTitle] = useState(notification?.title || "");
+  const [message, setMessage] = useState(notification?.message || "");
+  const [type, setType] = useState<NotificationType>(
+    (notification?.type as NotificationType) || "ANNOUNCEMENT"
+  );
 
-  const [type, setType] =
-    useState(
-      notification?.type ||
-      "ANNOUNCEMENT"
+  // শুধু create mode-এর জন্য
+  const [target, setTarget] = useState<TBroadcastTarget>("ROLE");
+  const [selectedRoles, setSelectedRoles] = useState<Role[]>([]);
+
+  const resetForm = () => {
+    setTitle("");
+    setMessage("");
+    setType("ANNOUNCEMENT");
+    setTarget("ROLE");
+    setSelectedRoles([]);
+  };
+
+  const toggleRole = (role: Role) => {
+    setSelectedRoles((prev) =>
+      prev.includes(role)
+        ? prev.filter((r) => r !== role)
+        : [...prev, role]
     );
+  };
 
   const handleSubmit = async () => {
+    if (!title.trim() || !message.trim()) {
+      return;
+    }
+
+    if (!isEdit && target === "ROLE" && selectedRoles.length === 0) {
+      return; 
+    }
+
     try {
-      if (!title.trim()) {
-        toast.error("Title required");
-        return;
-      }
+      setSubmitting(true);
 
-      if (!message.trim()) {
-        toast.error("Message required");
-        return;
-      }
-
-      // console.log("Submitting notification:", {
-      //   title,
-      //   message,
-      //   type,
-      // });
-
-      if (notification) {
-        await notificationApi.updateNotification(
-          notification.id,
-          {
-            title,
-            message,
-            type,
-          }
-        );
-      } else {
-        await notificationApi.createNotification({
+      if (isEdit && notification) {
+        await notificationApi.updateNotification(notification.id, {
           title,
           message,
           type,
         });
+      } else if (target === "ALL") {
+        await notificationApi.createBroadcastNotification({
+          title,
+          message,
+          type,
+          target: "ALL",
+        });
+      } else {
+        await notificationApi.createBroadcastNotification({
+          title,
+          message,
+          type,
+          target: "ROLE",
+          roles: selectedRoles,
+        });
       }
 
-      toast.success("Notification created successfully");
-
       setOpen(false);
-
+      resetForm();
       onSuccess();
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
-
-      toast.error(
-        error?.response?.data?.message ||
-        "Failed to create notification"
-      );
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
     <Dialog
       open={open}
-      onOpenChange={
-        setOpen
-      }
+      onOpenChange={(v) => {
+        setOpen(v);
+        if (!v && !isEdit) resetForm();
+      }}
     >
-      <DialogTrigger
-        asChild
-      >
-        <Button>
-          {notification
-            ? "Edit"
-            : "Create Notification"}
-        </Button>
+      <DialogTrigger asChild>
+        {isEdit ? (
+          <Button size="sm" variant="outline">
+            <Pencil className="h-3 w-3" />
+          </Button>
+        ) : (
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            New Notification
+          </Button>
+        )}
       </DialogTrigger>
 
-      <DialogContent>
-
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-
           <DialogTitle>
-            {notification
-              ? "Edit Notification"
-              : "Create Notification"}
+            {isEdit ? "Edit Notification" : "Send Notification"}
           </DialogTitle>
-          <DialogDescription>
-            Send notification to selected user
-          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* TARGET SELECT — শুধু create mode-এ */}
+          {!isEdit && (
+            <div className="space-y-2">
+              <Label>Send To</Label>
+              <Select
+                value={target}
+                onValueChange={(v) => setTarget(v as TBroadcastTarget)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select target" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ROLE">By Role</SelectItem>
+                  <SelectItem value="ALL">All Users</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-          <Input
-            placeholder="Title"
-            value={title}
-            onChange={(e) =>
-              setTitle(
-                e.target.value
-              )
-            }
-          />
+          {/* ROLE CHECKBOXES — শুধু target === ROLE হলে */}
+          {!isEdit && target === "ROLE" && (
+            <div className="space-y-2">
+              <Label>Select Role(s)</Label>
+              <div className="flex flex-col gap-2 rounded-lg border p-3">
+                {ROLES.map((role) => (
+                  <div key={role} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`role-${role}`}
+                      checked={selectedRoles.includes(role)}
+                      onCheckedChange={() => toggleRole(role)}
+                    />
+                    <Label
+                      htmlFor={`role-${role}`}
+                      className="cursor-pointer font-normal"
+                    >
+                      {role}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+              {selectedRoles.length === 0 && (
+                <p className="text-xs text-destructive">
+                  select at least one role to send notification.
+                </p>
+              )}
+            </div>
+          )}
 
-          <Textarea
-            placeholder="Message"
-            value={message}
-            onChange={(e) =>
-              setMessage(
-                e.target.value
-              )
-            }
-          />
+          {/* TYPE */}
+          <div className="space-y-2">
+            <Label>Type</Label>
+            <Select
+              value={type}
+              onValueChange={(v) => setType(v as NotificationType)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                {NOTIFICATION_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-          <Select
-            value={type}
-            onValueChange={
-              setType
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
+          {/* TITLE */}
+          <div className="space-y-2">
+            <Label>Title</Label>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Notification title"
+            />
+          </div>
 
-            <SelectContent>
-              <SelectItem value="ANNOUNCEMENT">
-                Announcement
-              </SelectItem>
-
-              <SelectItem value="TASK_ASSIGNED">
-                Task Assigned
-              </SelectItem>
-
-              <SelectItem value="LEAVE_STATUS">
-                Leave Status
-              </SelectItem>
-
-              <SelectItem value="PAYSLIP_READY">
-                Payslip Ready
-              </SelectItem>
-
-              <SelectItem value="SYSTEM">
-                System
-              </SelectItem>
-            </SelectContent>
-
-          </Select>
-
-          <Button
-            className="w-full"
-            onClick={
-              handleSubmit
-            }
-          >
-            Save
-          </Button>
-
+          {/* MESSAGE */}
+          <div className="space-y-2">
+            <Label>Message</Label>
+            <Textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Notification message"
+              rows={4}
+            />
+          </div>
         </div>
 
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setOpen(false)}
+            disabled={submitting}
+          >
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} disabled={submitting}>
+            <Send className="mr-2 h-4 w-4" />
+            {submitting ? "Sending..." : isEdit ? "Update" : "Send"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
