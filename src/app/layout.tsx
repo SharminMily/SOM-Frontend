@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 import { Providers } from "./providers";
 import { Metadata } from "next";
 import { AuthProvider } from "@/providers/AuthProvider";
+import { SearchProvider } from "@/components/context/SearchContext";
 
 
 export const metadata: Metadata = {
@@ -27,10 +28,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>
-
+        
         <Providers >
-         <AuthProvider>{children}</AuthProvider>
+           <SearchProvider>
+         <AuthProvider>
+          {children}
+          </AuthProvider>
+          
+        </SearchProvider>
         </Providers>
+
         <Toaster richColors position="top-right" />
         
       </body>

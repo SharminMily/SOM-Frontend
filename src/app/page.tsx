@@ -1,29 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/shared/Navbar";
-
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Clock,
-  CalendarCheck,
-  Wallet,
-  KanbanSquare,
-  Megaphone,
-  Building2,
-  ArrowRight,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Footer } from "@/components/shared/footer/Footer";
 import { Metadata } from "next";
+import { FeaturesSection } from "@/components/features-section/features-section";
+
 
 interface Metric {
   value: string;
   label: string;
-}
-
-interface Feature {
-  icon: LucideIcon;
-  title: string;
-  description: string;
 }
 
 const METRICS: Metric[] = [
@@ -33,46 +19,7 @@ const METRICS: Metric[] = [
   { value: "99.9%", label: "Platform uptime" },
 ];
 
-const FEATURES: Feature[] = [
-  {
-    icon: Clock,
-    title: "Attendance",
-    description:
-      "One-tap clock in/out with a live daily timer, so hours are tracked automatically — not typed in after the fact.",
-  },
-  {
-    icon: CalendarCheck,
-    title: "Leave management",
-    description:
-      "Employees apply, managers approve — with real-time balances so nobody has to guess how many days are left.",
-  },
-  {
-    icon: Wallet,
-    title: "Payroll",
-    description:
-      "Generate monthly payroll from attendance data automatically, and keep every payslip in one searchable place.",
-  },
-  {
-    icon: KanbanSquare,
-    title: "Projects & tasks",
-    description:
-      "Assign work, track status from to-do to done, and keep the conversation attached to the task, not buried in chat.",
-  },
-  {
-    icon: Megaphone,
-    title: "Announcements",
-    description:
-      "Pin what matters to the whole company, and know it reached every desk instead of getting lost in email.",
-  },
-  {
-    icon: Building2,
-    title: "Departments & teams",
-    description:
-      "Organize people into departments and reporting lines that mirror how your office actually works.",
-  },
-];
-
-export const metadata: Metadata = { title: "Home — SOM" }; 
+export const metadata: Metadata = { title: "Home — SOM" };
 
 export default function Home() {
   return (
@@ -199,29 +146,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((feature) => {
-            const Icon = feature.icon;
-            return (
-              <Card
-                key={feature.title}
-                className="border border-border bg-card rounded-2xl transition-colors hover:border-primary/50"
-              >
-                <CardContent className="p-7 space-y-4">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    {feature.description}
-                  </p>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+        <FeaturesSection />
       </section>
 
       {/* ---------- CTA ---------- */}

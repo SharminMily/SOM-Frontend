@@ -20,9 +20,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store/auth.store";
 import { USER_ROLE } from "@/constants/roles";
+import { useSearch } from "../context/SearchContext";
 
 export function Navbar() {
   const router = useRouter();
+  const { searchQuery, setSearchQuery } = useSearch();
 
   const user = useAuthStore((s) => s.user);
 
@@ -70,16 +72,18 @@ export function Navbar() {
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              type="text"
-              placeholder="Search..."
-              className="pl-11 bg-muted focus-visible:ring-[#10B981]"
-            />
+    type="text"
+    placeholder="Search..."
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    className="pl-11 bg-muted focus-visible:ring-[#10B981]"
+  />
           </div>
         </div>
 
         {/* Right Side */}
         <div className="flex items-center gap-4 ml-auto">
-          <NotificationBell />
+          {/* <NotificationBell /> */}
           <ThemeToggle />
 
           {!mounted ? (
